@@ -140,11 +140,13 @@ These belong to the API and client layers and are not part of this migration:
 
 ## Verification status
 
-Green on CI as of run #11 (`213006a`): **8 files, 279 assertions, 0 failures**,
-against a Postgres the migrations are applied to from scratch each run.
+Green on CI as of run #14 (`b62423f`): all 8 files passing, against a Postgres
+the migrations are applied to from scratch on every run. Each run reports its
+own `Files=` and `Result:` line as a workflow notice, so the size of the suite
+is never a claim in a document.
 
-Getting there took two fixes to the migration, both found by the suite and
-neither visible by reading the SQL:
+Getting there took three fixes to the migration, all found by the suite and
+none visible by reading the SQL:
 
 - **The policy migration revoked the projection views.**
   `20261112000500` opens with `revoke all on all tables in schema public`,
@@ -159,6 +161,12 @@ neither visible by reading the SQL:
   recent entry" was undefined. That matters for the log, and more for
   `app.deliverable_is_approved`, which decides approval from the latest
   review. Both now default to `clock_timestamp()`.
+
+- **The slot release could not assign its own enum.** The `staffed → staffing`
+  cascade set `slots.status` from a `CASE` of two bare literals, which
+  resolves to `text` and will not assign to a `slot_status` column. It raised
+  `42804` and took the whole transition with it, so a contractor could not
+  drop at all. Both branches now cast explicitly.
 
 Everything else the suite caught was wrong expectations in the tests
 themselves, since corrected.

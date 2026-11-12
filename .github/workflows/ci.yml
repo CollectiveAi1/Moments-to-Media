@@ -38,6 +38,9 @@ jobs:
           set +e
           supabase test db 2>&1 | tee /tmp/tap.txt
           status=${PIPESTATUS[0]}
+          # Always report the size of the run, pass or fail.
+          grep -E '^(Files=|Result:)' /tmp/tap.txt \
+            | while IFS= read -r line; do echo "::notice::${line}"; done
           if [ "$status" -ne 0 ]; then
             {
               echo '### pgTAP output'
