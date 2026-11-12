@@ -157,6 +157,86 @@ execute the hook.
 Registering the hook needed `[auth.hook.custom_access_token]` in
 `config.toml`, an auth configuration change, agreed before it was made.
 
+## Uploads
+
+Phase 1's last item, the database half: `20261112001000_upload_pipeline.sql`.
+
+**The database never sees a byte.** CLAUDE.md rule 7 means footage goes from
+the device straight to R2, so what the database can do is decide who may open
+an upload, hand out the plan the client uploads against, keep the ledger that
+makes a resume possible, and refuse to call an upload complete until the size
+and checksum the backend read back from R2 match what was declared. The R2
+calls themselves — `CreateMultipartUpload`, the presigned part URLs,
+`CompleteMultipartUpload`, the `HEAD` that reads the object back — are an Edge
+Function, because that is the only place R2 credentials may live (rule 4).
+
+```
+client                    Edge Function                database
+start_upload  --------->  public.start_upload  ------>  authorize, derive the
+                                                        key, write the ledger
+                          R2 CreateMultipartUpload
+                          app.attach_multipart  ------>  pending → in_progress
+                          presign part URLs
+PUT part -----------------------------------------------> (straight to R2)
+report part  ---------->  public.record_upload_part --->  ledger
+  ... resume: public.upload_resume_plan names the missing parts
+complete  ------------->  R2 CompleteMultipartUpload
+                          R2 HEAD object
+                          app.complete_upload  -------->  verify, then queue
+                                                          connector copies
+```
+
+**Verification is an invariant, not a code path.** `uploads` carries both what
+was declared at start (`bytes`, `checksum`) and what the backend read back
+(`verified_bytes`, `verified_checksum`), and a check constraint says a row
+cannot be `completed` unless the two agree. That holds against `service_role`
+and against any later code path that forgets to go through
+`app.complete_upload`, which is the difference between a rule and a habit.
+
+**Checksums are composite, and the client declares its own.** Parts are
+uploaded with SHA-256 part checksums, so R2 returns the digest of the
+concatenated part digests with the part count suffixed. The client is the one
+chunking the file, so it can compute that value before it starts and declare
+it; the Edge Function compares R2's answer to the declaration. Part digests
+are kept in the ledger so the composite can be recomputed from it if the two
+ever disagree. Postgres computes none of this — pgcrypto is not enabled and
+the bytes are not here to hash.
+
+**The part plan comes from the file size.** R2 allows at most 10,000 parts,
+none over 5 GiB and none but the last under 5 MiB, so no fixed part size
+serves both a 40 MB clip and a 50 GB card dump. `app.plan_part_size` starts at
+8 MiB and doubles until the count fits: a 50 GB upload is 6,400 parts of 8
+MiB. `packages/shared/src/uploads.ts` mirrors the limits and the planner, so
+the clients compute the same plan the database will accept.
+
+**Resuming is the server's answer, not the client's memory.** After the app is
+killed mid-upload, `public.upload_resume_plan` says which parts are still
+missing and which ETags landed. A retried part reports a new ETag and the
+latest report wins, which is what R2 does to a re-uploaded part.
+
+**"Mark upload complete" cannot lie.** A trigger on `assignments` refuses the
+move to `uploaded` while any upload on that assignment is still `pending` or
+`in_progress` — the same class of problem as a `staffed` event with an
+uncovered slot. It is a table trigger rather than a check inside
+`transition_assignment` so it also holds for `service_role`.
+
+Zero files is *not* refused. A contractor whose card went to the lead shooter
+would otherwise be trapped with no way out of the app, so the move is allowed
+and an `uploaded_with_no_files` entry goes to `activity_log` for the producer
+instead. Worth confirming with the client: the alternative is to block it and
+require the producer to mark the slot themselves.
+
+**Completion is idempotent** (rule 8). The same verification twice is the same
+call; a *different* one on an already-completed upload raises, rather than
+passing quietly. Same for `app.attach_multipart` and `app.abort_upload`.
+
+**Every failure path has a state.** `aborted` is someone's choice —
+`public.abort_upload`, open to the contractor who owns it or the event's
+producer, after which the Edge Function aborts the multipart upload on R2 so
+the parts stop being billed. `failed` is the backend's: R2 refused, the
+multipart expired, the completion did not verify. Without both, an upload that
+stopped would pin its assignment behind the in-flight guard forever.
+
 ## Deliberately not in the database
 
 These belong to the API and client layers and are not part of this migration:
@@ -171,16 +251,22 @@ These belong to the API and client layers and are not part of this migration:
 - **Match score and ranked candidates** (distance, gear, availability,
   reliability, history with the client) — a staffing query, not a constraint.
 - **The notification matrix** and its channels.
-- **R2 presigning, checksum verification and connector sync** — Edge Functions.
+- **The R2 calls themselves** — `CreateMultipartUpload`, presigning part
+  URLs, `CompleteMultipartUpload`, the `HEAD` that reads back size and
+  checksum, and the connector sync worker. The database decides and
+  verifies; the Edge Function is the only thing holding R2 credentials.
+  This is what is left of Phase 1 after this branch, together with the
+  50 GB throttled proof itself — `docs/upload-proof.md` is the procedure
+  and the pass criteria, written before the run.
 
 ## Verification status
 
-Green on CI as of run #14 (`b62423f`): all 8 files passing, against a Postgres
-the migrations are applied to from scratch on every run. Each run reports its
-own `Files=` and `Result:` line as a workflow notice, so the size of the suite
-is never a claim in a document.
+Green on CI as of run #23: `Files=10, Tests=412, Result: PASS`, against a
+Postgres the migrations are applied to from scratch on every run. Each run
+reports its own `Files=` and `Result:` line as a workflow notice, so the size
+of the suite is never a claim in a document.
 
-Getting there took three fixes to the migration, all found by the suite and
+Getting there took four fixes to the migrations, all found by the suite and
 none visible by reading the SQL:
 
 - **The policy migration revoked the projection views.**
@@ -203,6 +289,14 @@ none visible by reading the SQL:
   `42804` and took the whole transition with it, so a contractor could not
   drop at all. Both branches now cast explicitly.
 
+- **A new table arrived with privileges nobody granted it.** Supabase's
+  default privileges hand every new table in `public` to `anon` and
+  `authenticated`, so `org_invitations` appeared with seven privileges for
+  `anon` and a full-table `UPDATE` for `authenticated` that would have made
+  its column-level grant meaningless. The default is now revoked as well as
+  the table's own grants, and `01_schema_conventions` fails the build if
+  either slips again.
+
 Everything else the suite caught was wrong expectations in the tests
 themselves, since corrected.
 
@@ -216,6 +310,8 @@ themselves, since corrected.
 | `06_state_machine_event.test.sql` | `transition_event`: actors, illegal moves, entry conditions, cancel cascade, audit trail |
 | `07_state_machine_assignment.test.sql` | `transition_assignment`: the full walk from invite to paid, the review loop, every exit, both confirm guards |
 | `08_state_machine_payout.test.sql` | `transition_payout`: who submits and approves, auto-approval under the threshold, webhook settlement, failure and reversal |
+| `09_auth.test.sql` | Profile bootstrap, who may invite whom, claiming only against a verified address, the `org_roles` claim |
+| `10_upload_pipeline.test.sql` | Who may open an upload, the part plan and the derived object key, resuming, the verification that gates completion, idempotent completion, abort and fail, connector queueing, the in-flight guard, and the ledger's visibility |
 
 Run them locally with:
 
