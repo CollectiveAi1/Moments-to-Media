@@ -38,6 +38,12 @@ enable_confirmations = true
 enable_signup = true
 enable_confirmations = true
 
+# Role claims in the access token (20261112000900_access_token_hook.sql).
+# RLS does not read these — see that migration's header.
+[auth.hook.custom_access_token]
+enabled = true
+uri = "pg-functions://postgres/app/custom_access_token"
+
 [auth.sms.twilio]
 enabled = false
 account_sid = ""

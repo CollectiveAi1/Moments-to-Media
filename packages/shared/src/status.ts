@@ -133,3 +133,16 @@ export const DEFAULT_INVITE_WINDOW_HOURS = 24;
 export const DEFAULT_CONFIRM_DEADLINE_HOURS = 12;
 /** PRD "Permissions and data visibility": packet access ends 7 days after completion. */
 export const PACKET_ACCESS_DAYS_AFTER_COMPLETE = 7;
+
+/**
+ * The `org_roles` claim the access token hook adds
+ * (supabase/migrations/20261112000900_access_token_hook.sql):
+ * organization id → the roles held there.
+ *
+ * For rendering only — the org switcher and role-gated screens. It is a
+ * snapshot from the last token refresh, so never treat it as authorization:
+ * row-level security reads `memberships` directly, and a suspended membership
+ * is refused by the database while this claim may still name it.
+ */
+export const ORG_ROLES_CLAIM = 'org_roles' as const;
+export type OrgRoleClaims = Record<string, OrgRole[]>;

@@ -47,11 +47,17 @@ begin
     ('00000000-0000-0000-0000-000000000000', v_photog, 'authenticated', 'authenticated',
      'photographer@moments.test', now(), now(), '{"provider":"email","providers":["email"]}', '{}');
 
+  -- app.handle_new_user() created these from the auth rows; name and number
+  -- them the way the seed wants them.
   insert into public.profiles (user_id, full_name, phone, email) values
     (v_owner, 'Avery Owner', '+15550000001', 'owner@moments.test'),
     (v_producer, 'Parker Producer', '+15550000002', 'producer@moments.test'),
     (v_shooter, 'Sam Shooter', '+15550000003', 'shooter@moments.test'),
-    (v_photog, 'Pilar Photo', '+15550000004', 'photographer@moments.test');
+    (v_photog, 'Pilar Photo', '+15550000004', 'photographer@moments.test')
+  on conflict (user_id) do update
+    set full_name = excluded.full_name,
+        phone     = excluded.phone,
+        email     = excluded.email;
 
   insert into public.memberships (org_id, user_id, role) values
     (v_org, v_owner, 'owner'),
