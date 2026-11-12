@@ -146,6 +146,26 @@ begin
 end;
 $$;
 
+-- One scalar, read as the service role (background jobs and webhooks).
+create or replace function tests.value_as_service(p_query text)
+returns text
+language plpgsql
+as $$
+declare
+  v_value text;
+begin
+  perform set_config('request.jwt.claims', '', true);
+  perform set_config('role', 'service_role', true);
+  execute p_query into v_value;
+  -- Inlined on purpose: the role is `authenticated` or `service_role` at this
+  -- point, and neither has USAGE on schema tests, so calling
+  -- tests.as_db_owner() here would be denied before it could switch back.
+  perform set_config('request.jwt.claims', '', true);
+  perform set_config('role', 'postgres', true);
+  return v_value;
+end;
+$$;
+
 -- RLS filters an UPDATE or DELETE rather than failing it, so "denied" often
 -- means "nothing happened". This counts what the statement actually touched.
 create or replace function tests.rows_affected_as(p_user uuid, p_statement text)
@@ -434,11 +454,13 @@ begin
      now() + interval '5 days');
 
   insert into public.uploads
-    (id, org_id, assignment_id, kind, storage_key, filename, bytes, checksum, status)
+    (id, org_id, assignment_id, kind, storage_key, filename, bytes, checksum, status,
+     verified_bytes, verified_checksum, part_size_bytes, part_count, multipart_upload_id)
   values
     (v_upload_a, v_org_a, v_assign_confirmed, 'raw',
      'moments-to-media/desert-classic/2026-11-14_day-1/lead-video_casey/raw/A001.mp4',
-     'A001.mp4', 8123456789, 'sha256:aaa', 'completed');
+     'A001.mp4', 8123456789, 'sha256:aaa', 'completed',
+     8123456789, 'sha256:aaa', 8 * 1024 * 1024, 969, 'r2-mpu-a001');
 
   insert into public.payouts (id, org_id, assignment_id, amount_cents, status) values
     (v_payout_a, v_org_a, v_assign_confirmed, 60000, 'draft');
@@ -462,11 +484,13 @@ begin
     (v_assign_a2, v_org_a, v_slot_a2, v_conf, 'confirmed');
 
   insert into public.uploads
-    (id, org_id, assignment_id, kind, storage_key, filename, bytes, checksum, status)
+    (id, org_id, assignment_id, kind, storage_key, filename, bytes, checksum, status,
+     verified_bytes, verified_checksum, part_size_bytes, part_count, multipart_upload_id)
   values
     (v_upload_a2, v_org_a, v_assign_a2, 'raw',
      'moments-to-media/desert-classic/2026-11-15_day-2/drone_casey/raw/D001.mp4',
-     'D001.mp4', 2123456789, 'sha256:bbb', 'completed');
+     'D001.mp4', 2123456789, 'sha256:bbb', 'completed',
+     2123456789, 'sha256:bbb', 8 * 1024 * 1024, 254, 'r2-mpu-d001');
 
   insert into public.payouts (id, org_id, assignment_id, amount_cents, status) values
     (v_payout_a2, v_org_a, v_assign_a2, 50000, 'draft');
@@ -497,10 +521,12 @@ begin
     (v_assign_b, v_org_b, v_slot_b, v_cont_b, 'confirmed');
 
   insert into public.uploads
-    (id, org_id, assignment_id, kind, storage_key, filename, bytes, checksum, status)
+    (id, org_id, assignment_id, kind, storage_key, filename, bytes, checksum, status,
+     verified_bytes, verified_checksum, part_size_bytes, part_count, multipart_upload_id)
   values
     (v_upload_b, v_org_b, v_assign_b, 'raw', 'other-media-co/gala/raw/B001.jpg',
-     'B001.jpg', 12345678, 'sha256:ccc', 'completed');
+     'B001.jpg', 12345678, 'sha256:ccc', 'completed',
+     12345678, 'sha256:ccc', 8 * 1024 * 1024, 2, 'r2-mpu-b001');
 
   insert into public.payouts (id, org_id, assignment_id, amount_cents, status) values
     (v_payout_b, v_org_b, v_assign_b, 30000, 'draft');

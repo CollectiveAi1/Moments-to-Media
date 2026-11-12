@@ -36,7 +36,7 @@ insert into org_scoped (table_name) values
   ('memberships'), ('compliance_documents'), ('clients'), ('client_contacts'),
   ('events'), ('event_contacts'), ('briefs'), ('slots'), ('assignments'),
   ('shot_list_items'), ('shot_checks'), ('deliverables'), ('deliverable_reviews'),
-  ('uploads'), ('connector_accounts'), ('connector_rules'), ('sync_jobs'),
+  ('uploads'), ('upload_parts'), ('connector_accounts'), ('connector_rules'), ('sync_jobs'),
   ('payouts'), ('ratings'), ('announcements'), ('notifications'), ('activity_log');
 
 select is(
@@ -146,6 +146,14 @@ select ok(
 select ok(
   not has_table_privilege('authenticated', 'public.uploads', 'insert'),
   'uploads are written by the backend, not by clients');
+
+select ok(
+  not has_table_privilege('authenticated', 'public.upload_parts', 'insert'),
+  'the part ledger is written by the backend, not by clients');
+
+select ok(
+  not has_table_privilege('authenticated', 'public.upload_parts', 'update'),
+  'a client cannot edit a part it has already reported');
 
 -- ---- anon reaches nothing
 
