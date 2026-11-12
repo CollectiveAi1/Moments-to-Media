@@ -119,17 +119,33 @@ These belong to the API and client layers and are not part of this migration:
 
 ## Verification status
 
-The suite in `supabase/tests` is written but **has not been run**: this machine
-has no Postgres, no Docker and no working Node toolchain (Apple Silicon with
-x86-only Node builds installed and Rosetta absent), so neither
-`supabase test db` nor a bare `pg_prove` can start.
+Green on CI as of run #11 (`213006a`): **8 files, 279 assertions, 0 failures**,
+against a Postgres the migrations are applied to from scratch each run.
 
-It is 8 files and roughly 190 assertions:
+Getting there took two fixes to the migration, both found by the suite and
+neither visible by reading the SQL:
+
+- **The policy migration revoked the projection views.**
+  `20261112000500` opens with `revoke all on all tables in schema public`,
+  which in Postgres covers views, so it took back the grants
+  `20261112000400` had just made on `job_board`, `event_crew` and
+  `organization_public`. A contractor got `permission denied for view
+  job_board` — no job board, no open calls, nothing before confirmation. The
+  grants are now re-applied after the revoke.
+- **The audit trail could not be ordered.** `activity_log.created_at` and
+  `deliverable_reviews.created_at` defaulted to `now()`, the *transaction*
+  timestamp, so every row written by one transition shared it and "the most
+  recent entry" was undefined. That matters for the log, and more for
+  `app.deliverable_is_approved`, which decides approval from the latest
+  review. Both now default to `clock_timestamp()`.
+
+Everything else the suite caught was wrong expectations in the tests
+themselves, since corrected.
 
 | File | Covers |
 | --- | --- |
 | `01_schema_conventions.test.sql` | CLAUDE.md rules 1, 5, 6, 10 against the catalog: RLS everywhere, policies everywhere, `org_id` not null and indexed, every foreign key indexed, integer cents, no naive timestamps, status columns not writable, `anon` has nothing |
-| `02_tenant_isolation.test.sql` | Each tenant invisible to the other across all 22 org-scoped tables, both directions, plus three grafted-row attempts the composite keys must refuse |
+| `02_tenant_isolation.test.sql` | Each tenant invisible to the other across all 22 org-scoped tables, both directions, plus three grafted-row attempts the composite keys refuse |
 | `03_matrix_packet_visibility.test.sql` | Matrix rows 1-6, all five personas, and the 7-day window after completion |
 | `04_matrix_footage_money_profiles.test.sql` | Matrix rows 7-10, including the producer "own events" boundary |
 | `05_matrix_settings_and_writes.test.sql` | Matrix row 11 and the write side: who may insert, update and opt in |
@@ -137,7 +153,7 @@ It is 8 files and roughly 190 assertions:
 | `07_state_machine_assignment.test.sql` | `transition_assignment`: the full walk from invite to paid, the review loop, every exit, both confirm guards |
 | `08_state_machine_payout.test.sql` | `transition_payout`: who submits and approves, auto-approval under the threshold, webhook settlement, failure and reversal |
 
-To run them, either:
+Run them locally with:
 
 ```bash
 pnpm db:reset && pnpm db:test
