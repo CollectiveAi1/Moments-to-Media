@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  pull_request:
+  # Every branch, not just main: the tests are the gate on this work, and a
+  # branch should go red before it reaches a pull request.
+  push:
+    branches: ['**']
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  database:
+    name: Schema, RLS and state-machine tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      # Boots Postgres and applies every file in supabase/migrations in order.
+      - name: Start local Supabase
+        run: supabase start
+
+      # Fails if a migration is not reproducible from scratch.
+      - name: Reset database from migrations
+        run: supabase db reset
+
+      - name: Run pgTAP tests (RLS policies and state machines)
+        run: supabase test db
+
+      # Errors only. The linter flags security-definer views, which are
+      # deliberate here — see docs/foundation-review.md.
+      - name: Lint schema
+        run: supabase db lint --level error
+
+  node:
+    name: Typecheck, lint and unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.3
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      # TODO: switch to --frozen-lockfile once pnpm-lock.yaml is committed
+      # (needs one `pnpm install` on a machine with a working Node toolchain).
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm test

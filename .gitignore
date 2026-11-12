@@ -1,0 +1,20 @@
+node_modules/
+.turbo/
+dist/
+.next/
+.expo/
+*.tsbuildinfo
+
+# Environment and secrets — never commit
+.env
+.env.*
+!.env.example
+
+# Supabase local state
+supabase/.branches/
+supabase/.temp/
+supabase/.env
+
+# OS / editor
+.DS_Store
+*.log
