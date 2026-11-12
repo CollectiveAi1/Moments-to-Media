@@ -45,7 +45,7 @@ jobs:
               cat /tmp/tap.txt
               echo '```'
             } >> "$GITHUB_STEP_SUMMARY"
-            grep -nE '^(not ok|# +Failed test|# +died:|# +caught:|#   +(have|want|error|description):|# Looks like)' /tmp/tap.txt \
+            grep -nE '(ERROR|FATAL|PANIC|^not ok|# +Failed test|# +died:|# +caught:|#   +(have|want|error|description):|# Looks like|Parse errors)' /tmp/tap.txt \
               | head -40 \
               | while IFS= read -r line; do echo "::error::${line}"; done
             tail -5 /tmp/tap.txt | while IFS= read -r line; do echo "::error::tail: ${line}"; done
