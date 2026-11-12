@@ -135,6 +135,53 @@ select isnt(
   (select cancelled_at from public.events where id = tests.id('event_a2')),
   null, 'and stamps cancelled_at');
 
+-- ---- an open call needs an area label before it can go live
+
+insert into tests.fixture_ids (name, id) values
+  ('event_open_call', gen_random_uuid()),
+  ('slot_open_call', gen_random_uuid()),
+  ('event_staffed', gen_random_uuid());
+
+insert into public.events (id, org_id, client_id, producer_id, title,
+                           starts_at, ends_at, time_zone, status)
+values (tests.id('event_open_call'), tests.id('org_a'), tests.id('client_a'),
+        tests.id('producer_a'), 'No area written yet',
+        now() + interval '12 days', now() + interval '12 days 4 hours',
+        'America/Phoenix', 'draft'),
+       (tests.id('event_staffed'), tests.id('org_a'), tests.id('client_a'),
+        tests.id('producer_a'), 'Already staffed',
+        now() + interval '13 days', now() + interval '13 days 4 hours',
+        'America/Phoenix', 'staffed');
+
+insert into public.slots (id, org_id, event_id, role, rate_type, rate_amount_cents,
+                          call_time, staffing_mode, is_required, status)
+values (tests.id('slot_open_call'), tests.id('org_a'), tests.id('event_open_call'),
+        'Photo', 'day', 40000, now() + interval '12 days', 'open_call', true, 'open_call');
+
+select is(
+  tests.error_as(tests.id('producer_a'),
+    format('select public.transition_event(%L, ''staffing'')', tests.id('event_open_call'))),
+  '23514', 'an open call cannot go on the board without an area label');
+
+update public.events set area_label = 'Midtown Phoenix, AZ'
+ where id = tests.id('event_open_call');
+
+select is(
+  tests.error_as(tests.id('producer_a'),
+    format('select public.transition_event(%L, ''staffing'')', tests.id('event_open_call'))),
+  'NO_ERROR', 'with an area label written, the open call posts');
+
+-- ---- staffed runs backwards to staffing
+
+select is(
+  tests.error_as(tests.id('producer_a'),
+    format('select public.transition_event(%L, ''staffing'')', tests.id('event_staffed'))),
+  'NO_ERROR', 'a staffed event can be put back to staffing');
+
+select is(
+  (select status::text from public.events where id = tests.id('event_staffed')),
+  'staffing', 'and the status follows');
+
 -- ---- every move is written to the activity log
 
 select cmp_ok(

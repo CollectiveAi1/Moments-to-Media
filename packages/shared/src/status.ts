@@ -36,7 +36,9 @@ export const EVENT_STATUS_CLIENT_TERM: Record<EventStatus, string | null> = {
 export const EVENT_TRANSITIONS: Record<EventStatus, readonly EventStatus[]> = {
   draft: ['staffing', 'cancelled'],
   staffing: ['staffed', 'cancelled'],
-  staffed: ['in_progress', 'cancelled'],
+  // staffed → staffing: a committed contractor leaving uncovers a required
+  // slot, so the event is no longer staffed.
+  staffed: ['in_progress', 'staffing', 'cancelled'],
   in_progress: ['uploaded'],
   uploaded: ['complete'],
   complete: [],

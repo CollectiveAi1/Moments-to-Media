@@ -300,6 +300,9 @@ create table public.slots (
   rate_amount_cents  integer not null check (rate_amount_cents >= 0),
   -- e.g. {"after_hours": 8, "multiplier": 1.5} (PRD "Payout").
   overtime_rule      jsonb,
+  -- Minimum call for hourly work: a short shoot that still cost the
+  -- contractor a journey bills at least this many hours. Null means none.
+  minimum_hours      numeric(5, 2) check (minimum_hours is null or minimum_hours > 0),
   call_time          timestamptz not null,
   -- Equipment categories the slot requires; matched against the roster's equipment.
   required_gear      text[] not null default '{}',

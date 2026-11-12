@@ -55,15 +55,18 @@ docs/PRD.md
 
 ## State machines
 
-Event: `draft → staffing → staffed → in_progress → uploaded → complete`, plus `cancelled` from any state before `in_progress`.
+Event: `draft → staffing → staffed → in_progress → uploaded → complete`, plus `cancelled` from any state before `in_progress`. One move runs backwards: `staffed → staffing`, when a committed contractor leaves and a required slot is uncovered again — "staffed" means every required slot has a confirmed contractor, and the operations board must stop claiming otherwise. Not available from `in_progress`.
 
-Assignment (contractor on a slot):
-- Entry: `invited` or `interested`
-- `selected → confirmed → checked_in → checked_out → uploaded → approved → paid`
+Assignment (contractor on a slot), two entry paths:
+- Direct invite: `invited → confirmed`. The invite is already the producer's choice, so accepting it commits; there is no second selection step.
+- Open call: `interested → selected → confirmed`.
+- Then `confirmed → checked_in → checked_out → uploaded → approved → paid`
 - `uploaded ⇄ changes_requested`
-- Exits: `declined` (from invited), `not_selected` / `withdrawn` (from interested), `expired` (selected, confirm deadline passed), `cancelled` / `dropped` (from confirmed)
+- Exits: `declined` (from invited), `expired` (invite window or confirm deadline passed), `not_selected` / `withdrawn` (from interested), `cancelled` / `dropped` (from confirmed)
 
-Payout: `draft → submitted → approved → sent → paid`, plus `failed` / `reversed` from Stripe webhooks.
+Payout: `draft → submitted → approved → sent → paid`, plus `failed` / `reversed` from Stripe webhooks, and `failed → submitted` to retry.
+
+Hourly pay: quarter-hour increments rounded up, from check-in to check-out, never below the slot's minimum call (`slots.minimum_hours`). Flat and day rates pay as quoted.
 
 Selection rule: selecting a contractor sends a confirm request (default 12h deadline). Only a confirm commits them. On confirm, everyone else who opted in is notified that the slot is filled. On expiry, the producer gets the next-ranked candidate.
 
