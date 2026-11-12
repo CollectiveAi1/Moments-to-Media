@@ -263,6 +263,62 @@ select is(
     format('select public.transition_assignment(%L, ''confirmed'')', tests.id('assign_expire'))),
   '23514', 'an expired assignment is terminal');
 
+-- ============================ a committed contractor leaving un-staffs it
+-- "Staffed" means every required slot has a confirmed contractor, so a drop
+-- that uncovers one puts the event back to staffing and releases the slot.
+
+insert into tests.fixture_ids (name, id) values
+  ('event_drop', gen_random_uuid()),
+  ('slot_drop', gen_random_uuid()),
+  ('slot_drop2', gen_random_uuid()),
+  ('assign_drop', gen_random_uuid()),
+  ('assign_drop2', gen_random_uuid());
+
+insert into public.events (id, org_id, client_id, producer_id, title, starts_at, ends_at,
+                           time_zone, area_label, status)
+values (tests.id('event_drop'), tests.id('org_a'), tests.id('client_a'), tests.id('producer_a'),
+        'Somebody will drop out', now() + interval '8 days', now() + interval '8 days 6 hours',
+        'America/Phoenix', 'Tempe, AZ', 'staffed');
+
+insert into public.slots (id, org_id, event_id, role, rate_type, rate_amount_cents, call_time,
+                          staffing_mode, is_required, status)
+values (tests.id('slot_drop'), tests.id('org_a'), tests.id('event_drop'), 'Lead video',
+        'flat', 60000, now() + interval '8 days', 'direct_invite', true, 'filled'),
+       (tests.id('slot_drop2'), tests.id('org_a'), tests.id('event_drop'), 'Second camera',
+        'flat', 30000, now() + interval '8 days', 'open_call', false, 'filled');
+
+insert into public.assignments (id, org_id, slot_id, user_id, status)
+values (tests.id('assign_drop'), tests.id('org_a'), tests.id('slot_drop'),
+        tests.id('confirmed_contractor'), 'confirmed'),
+       (tests.id('assign_drop2'), tests.id('org_a'), tests.id('slot_drop2'),
+        tests.id('candidate_contractor'), 'confirmed');
+
+select is(
+  tests.error_as(tests.id('candidate_contractor'),
+    format('select public.transition_assignment(%L, ''dropped'')', tests.id('assign_drop2'))),
+  'NO_ERROR', 'a contractor drops an open-call slot');
+
+select is(
+  (select status::text from public.slots where id = tests.id('slot_drop2')),
+  'open_call', 'the open-call slot goes back on the job board');
+
+select is(
+  (select status::text from public.events where id = tests.id('event_drop')),
+  'staffed', 'a slot that was not required leaves the event staffed');
+
+select is(
+  tests.error_as(tests.id('confirmed_contractor'),
+    format('select public.transition_assignment(%L, ''dropped'')', tests.id('assign_drop'))),
+  'NO_ERROR', 'a contractor drops a required slot');
+
+select is(
+  (select status::text from public.events where id = tests.id('event_drop')),
+  'staffing', 'which un-staffs the event');
+
+select is(
+  (select status::text from public.slots where id = tests.id('slot_drop')),
+  'inviting', 'and puts the invited slot back to inviting');
+
 -- ========================================================= the audit trail
 
 select cmp_ok(

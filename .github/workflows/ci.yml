@@ -30,8 +30,30 @@ jobs:
       - name: Reset database from migrations
         run: supabase db reset
 
+      # The TAP output is echoed as workflow error annotations as well as to
+      # the log, because run logs need a signed-in session with write access
+      # while annotations are readable from the run's API without one.
       - name: Run pgTAP tests (RLS policies and state machines)
-        run: supabase test db
+        run: |
+          set +e
+          supabase test db 2>&1 | tee /tmp/tap.txt
+          status=${PIPESTATUS[0]}
+          # Always report the size of the run, pass or fail.
+          grep -E '^(Files=|Result:)' /tmp/tap.txt \
+            | while IFS= read -r line; do echo "::notice::${line}"; done
+          if [ "$status" -ne 0 ]; then
+            {
+              echo '### pgTAP output'
+              echo '```'
+              cat /tmp/tap.txt
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            grep -nE '(ERROR|FATAL|PANIC|^not ok|# +Failed test|# +died:|# +caught:|#   +(have|want|error|description):|# Looks like|Parse errors)' /tmp/tap.txt \
+              | head -40 \
+              | while IFS= read -r line; do echo "::error::${line}"; done
+            tail -5 /tmp/tap.txt | while IFS= read -r line; do echo "::error::tail: ${line}"; done
+          fi
+          exit "$status"
 
       # Errors only. The linter flags security-definer views, which are
       # deliberate here — see docs/foundation-review.md.
@@ -48,10 +70,11 @@ jobs:
         with:
           version: 9.12.3
 
+      # No `cache: pnpm` until a lockfile is committed: the cache step fails
+      # outright when it cannot find pnpm-lock.yaml.
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-          cache: pnpm
 
       # TODO: switch to --frozen-lockfile once pnpm-lock.yaml is committed
       # (needs one `pnpm install` on a machine with a working Node toolchain).

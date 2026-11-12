@@ -37,7 +37,8 @@ from unnest(array[
 -- ---- a contractor confirmed in B gets nothing from A
 
 select is(
-  tests.count_as(tests.id('contractor_b'), 'select 1 from public.events'),
+  tests.count_as(tests.id('contractor_b'),
+    format('select 1 from public.events where org_id = %L', tests.id('org_a'))),
   0::bigint,
   'a contractor in B sees no events in A');
 
@@ -81,10 +82,12 @@ select throws_ok(
   null,
   'an assignment cannot carry org A while pointing at a slot of B');
 
+-- assign_candidate, not assign_confirmed: the latter already has a payout, so
+-- payouts_assignment_id_key would fire before the tenant check under test.
 select throws_ok(
   format('insert into public.payouts (org_id, assignment_id, amount_cents)
           values (%L, %L, 1000)',
-         tests.id('org_b'), tests.id('assign_confirmed')),
+         tests.id('org_b'), tests.id('assign_candidate')),
   '23503',
   null,
   'a payout cannot carry org B while pointing at an assignment of A');

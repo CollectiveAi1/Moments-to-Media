@@ -11,6 +11,11 @@ create extension if not exists pgtap with schema extensions;
 
 create schema if not exists tests;
 
+-- Belt and braces alongside the inlined role resets below: if any helper is
+-- ever reached while impersonating, it should fail on its own logic rather
+-- than on schema access. Rolled back with the rest of the test transaction.
+grant usage on schema tests to authenticated, service_role;
+
 -- -------------------------------------------------------- role switching
 -- pg_prove connects as the database owner, so SET ROLE in either direction is
 -- allowed. Every setting is transaction-local.
@@ -48,9 +53,18 @@ as $$
 declare
   v_count bigint;
 begin
-  perform tests.as_user(p_user);
+  perform set_config(
+    'request.jwt.claims',
+    json_build_object('sub', p_user::text, 'role', 'authenticated', 'aud', 'authenticated')::text,
+    true
+  );
+  perform set_config('role', 'authenticated', true);
   execute format('select count(*) from (%s) as q', p_query) into v_count;
-  perform tests.as_db_owner();
+  -- Inlined on purpose: the role is `authenticated` or `service_role` at this
+  -- point, and neither has USAGE on schema tests, so calling
+  -- tests.as_db_owner() here would be denied before it could switch back.
+  perform set_config('request.jwt.claims', '', true);
+  perform set_config('role', 'postgres', true);
   return v_count;
 end;
 $$;
@@ -63,9 +77,18 @@ as $$
 declare
   v_value text;
 begin
-  perform tests.as_user(p_user);
+  perform set_config(
+    'request.jwt.claims',
+    json_build_object('sub', p_user::text, 'role', 'authenticated', 'aud', 'authenticated')::text,
+    true
+  );
+  perform set_config('role', 'authenticated', true);
   execute p_query into v_value;
-  perform tests.as_db_owner();
+  -- Inlined on purpose: the role is `authenticated` or `service_role` at this
+  -- point, and neither has USAGE on schema tests, so calling
+  -- tests.as_db_owner() here would be denied before it could switch back.
+  perform set_config('request.jwt.claims', '', true);
+  perform set_config('role', 'postgres', true);
   return v_value;
 end;
 $$;
@@ -79,13 +102,22 @@ as $$
 declare
   v_state text := null;
 begin
-  perform tests.as_user(p_user);
+  perform set_config(
+    'request.jwt.claims',
+    json_build_object('sub', p_user::text, 'role', 'authenticated', 'aud', 'authenticated')::text,
+    true
+  );
+  perform set_config('role', 'authenticated', true);
   begin
     execute p_statement;
   exception
     when others then v_state := sqlstate;
   end;
-  perform tests.as_db_owner();
+  -- Inlined on purpose: the role is `authenticated` or `service_role` at this
+  -- point, and neither has USAGE on schema tests, so calling
+  -- tests.as_db_owner() here would be denied before it could switch back.
+  perform set_config('request.jwt.claims', '', true);
+  perform set_config('role', 'postgres', true);
   return coalesce(v_state, 'NO_ERROR');
 end;
 $$;
@@ -105,7 +137,11 @@ begin
   exception
     when others then v_state := sqlstate;
   end;
-  perform tests.as_db_owner();
+  -- Inlined on purpose: the role is `authenticated` or `service_role` at this
+  -- point, and neither has USAGE on schema tests, so calling
+  -- tests.as_db_owner() here would be denied before it could switch back.
+  perform set_config('request.jwt.claims', '', true);
+  perform set_config('role', 'postgres', true);
   return coalesce(v_state, 'NO_ERROR');
 end;
 $$;
@@ -119,14 +155,23 @@ as $$
 declare
   v_rows bigint := -1;
 begin
-  perform tests.as_user(p_user);
+  perform set_config(
+    'request.jwt.claims',
+    json_build_object('sub', p_user::text, 'role', 'authenticated', 'aud', 'authenticated')::text,
+    true
+  );
+  perform set_config('role', 'authenticated', true);
   begin
     execute p_statement;
     get diagnostics v_rows = row_count;
   exception
     when others then v_rows := -1;   -- refused outright (missing grant)
   end;
-  perform tests.as_db_owner();
+  -- Inlined on purpose: the role is `authenticated` or `service_role` at this
+  -- point, and neither has USAGE on schema tests, so calling
+  -- tests.as_db_owner() here would be denied before it could switch back.
+  perform set_config('request.jwt.claims', '', true);
+  perform set_config('role', 'postgres', true);
   return v_rows;
 end;
 $$;
@@ -253,9 +298,13 @@ begin
     ('payout_a', v_payout_a), ('payout_a2', v_payout_a2), ('payout_b', v_payout_b);
 
   -- ---- organizations
+  -- Slugs are derived from the generated ids. `supabase db reset` applies
+  -- supabase/seed.sql before the suite runs, so a fixed slug would collide
+  -- with the development seed's organization; the fixture must not assume an
+  -- empty database.
   insert into public.organizations (id, name, slug, in_app_payments_enabled, settings)
   values (
-    v_org_a, 'Moments to Media', 'moments-to-media', true,
+    v_org_a, 'Test Org A', 'test-a-' || substr(replace(v_org_a::text, '-', ''), 1, 12), true,
     jsonb_build_object(
       'reminder_hours_before_call', jsonb_build_array(24, 2),
       'invite_window_hours', 24,
@@ -267,7 +316,7 @@ begin
   );
 
   insert into public.organizations (id, name, slug, in_app_payments_enabled)
-  values (v_org_b, 'Other Media Co', 'other-media-co', false);
+  values (v_org_b, 'Test Org B', 'test-b-' || substr(replace(v_org_b::text, '-', ''), 1, 12), false);
 
   -- ---- people
   v_owner_a := tests.new_user('owner_a', 'owner-a@example.test', 'Owner A');

@@ -24,6 +24,10 @@
 -- Payout amount for an approved slot: flat and day rates as quoted, hourly
 -- from the check-in and check-out times with the slot's overtime rule
 -- (PRD "Payout", steps 1-2).
+--
+-- Hourly work bills in quarter-hour increments, rounded up, and never below
+-- the slot's minimum call. Quarter hours are the freelance norm and cap the
+-- rounding gift at 14 minutes rather than 59.
 create or replace function app.compute_payout_cents(p_assignment uuid)
 returns integer
 language plpgsql
@@ -35,6 +39,7 @@ declare
   v_rate_type        public.rate_type;
   v_rate_cents       integer;
   v_overtime         jsonb;
+  v_minimum_hours    numeric;
   v_in               timestamptz;
   v_out              timestamptz;
   v_hours            numeric;
@@ -43,8 +48,9 @@ declare
   v_regular_hours    numeric;
   v_overtime_hours   numeric;
 begin
-  select s.rate_type, s.rate_amount_cents, s.overtime_rule, a.checked_in_at, a.checked_out_at
-    into v_rate_type, v_rate_cents, v_overtime, v_in, v_out
+  select s.rate_type, s.rate_amount_cents, s.overtime_rule, s.minimum_hours,
+         a.checked_in_at, a.checked_out_at
+    into v_rate_type, v_rate_cents, v_overtime, v_minimum_hours, v_in, v_out
   from public.assignments a
   join public.slots s on s.id = a.slot_id
   where a.id = p_assignment;
@@ -63,7 +69,10 @@ begin
     return v_rate_cents;
   end if;
 
-  v_hours := ceil(extract(epoch from (v_out - v_in)) / 3600.0);
+  -- 900 seconds to the quarter hour, rounded up, then the minimum call.
+  v_hours := ceil(extract(epoch from (v_out - v_in)) / 900.0) / 4.0;
+  v_hours := greatest(v_hours, coalesce(v_minimum_hours, 0));
+
   v_after_hours := nullif(v_overtime ->> 'after_hours', '')::numeric;
   v_multiplier := coalesce(nullif(v_overtime ->> 'multiplier', '')::numeric, 1.5);
 
@@ -111,10 +120,14 @@ begin
             hint = 'Only the organization owner or the event''s producer may move an event.';
   end if;
 
+  -- staffed → staffing is the one move backwards: "Staffed" means every
+  -- required slot has a confirmed contractor, so when one drops the event is
+  -- no longer staffed and the operations board must stop saying it is. Not
+  -- available from in_progress — by then the day has started.
   v_allowed := case v_from
     when 'draft'       then p_to in ('staffing', 'cancelled')
     when 'staffing'    then p_to in ('staffed', 'cancelled')
-    when 'staffed'     then p_to in ('in_progress', 'cancelled')
+    when 'staffed'     then p_to in ('in_progress', 'staffing', 'cancelled')
     when 'in_progress' then p_to = 'uploaded'
     when 'uploaded'    then p_to = 'complete'
     else false
@@ -126,6 +139,25 @@ begin
   end if;
 
   -- Entry conditions from PRD "Status lifecycles → Event".
+
+  -- An open call shows contractors the event's area and nothing finer
+  -- (PRD "Contractor app → Job board"), so a slot cannot go on the board
+  -- before someone has written one.
+  if p_to = 'staffing'
+     and coalesce(btrim(v_event.area_label), '') = ''
+     and exists (
+       select 1
+       from public.slots s
+       where s.event_id = p_event
+         and s.staffing_mode = 'open_call'
+         and s.status <> 'cancelled'
+     )
+  then
+    raise exception 'event % has an open call but no area label', p_event
+      using errcode = 'check_violation',
+            hint = 'The job board shows the area, never the address. Set events.area_label first.';
+  end if;
+
   if p_to = 'staffed' then
     select string_agg(s.role, ', ')
       into v_blocker
@@ -478,6 +510,45 @@ begin
           perform app.transition_event_internal(v_event.id, 'staffed'::public.event_status,
                                                 'every required slot confirmed', false);
         end if;
+      end if;
+    end if;
+  end if;
+
+  -- A committed contractor leaving releases the slot, and un-staffs the event
+  -- if that leaves a required slot uncovered. The event-cancelled path calls
+  -- in with p_cascade false, so cancelling an event does not demote it here.
+  if p_to in ('cancelled', 'dropped') and p_cascade then
+    -- Both branches cast explicitly: a CASE of two bare literals resolves to
+    -- text, which will not assign to a slot_status column.
+    update public.slots
+       set status = case
+                      when staffing_mode = 'open_call' then 'open_call'::public.slot_status
+                      else 'inviting'::public.slot_status
+                    end
+     where id = v_assignment.slot_id
+       and status = 'filled';
+
+    if v_event.status = 'staffed' then
+      select exists (
+        select 1
+        from public.slots s
+        where s.event_id = v_event.id
+          and s.is_required
+          and s.status <> 'cancelled'
+          and not exists (
+            select 1
+            from public.assignments a
+            where a.slot_id = s.id
+              and a.status = any (array[
+                'confirmed', 'checked_in', 'checked_out', 'uploaded',
+                'changes_requested', 'approved', 'paid'
+              ]::public.assignment_status[])
+          )
+      ) into v_ready;
+
+      if v_ready then
+        perform app.transition_event_internal(v_event.id, 'staffing'::public.event_status,
+                                              'a committed contractor left a required slot', false);
       end if;
     end if;
   end if;

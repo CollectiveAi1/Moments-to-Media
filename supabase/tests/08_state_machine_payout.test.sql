@@ -201,5 +201,52 @@ select cmp_ok(
   '>=', 12::bigint,
   'every payout transition wrote an activity_log row');
 
+-- ===================================================== hourly pay arithmetic
+-- Quarter-hour increments rounded up, never below the slot's minimum call,
+-- with the overtime rule applied above its threshold.
+
+insert into tests.fixture_ids (name, id) values
+  ('slot_hourly', gen_random_uuid()), ('assign_hourly', gen_random_uuid()),
+  ('slot_minimum', gen_random_uuid()), ('assign_minimum', gen_random_uuid()),
+  ('slot_overtime', gen_random_uuid()), ('assign_overtime', gen_random_uuid());
+
+insert into public.slots (id, org_id, event_id, role, rate_type, rate_amount_cents,
+                          overtime_rule, minimum_hours, call_time, is_required, status)
+values (tests.id('slot_hourly'), tests.id('org_a'), tests.id('event_a'), 'Hourly',
+        'hourly', 9000, null, null, now(), false, 'filled'),
+       (tests.id('slot_minimum'), tests.id('org_a'), tests.id('event_a'), 'Short call',
+        'hourly', 9000, null, 4, now(), false, 'filled'),
+       (tests.id('slot_overtime'), tests.id('org_a'), tests.id('event_a'), 'Long day',
+        'hourly', 9000, '{"after_hours": 8, "multiplier": 1.5}'::jsonb, null,
+        now(), false, 'filled');
+
+insert into public.assignments (id, org_id, slot_id, user_id, status,
+                                checked_in_at, checked_out_at)
+values (tests.id('assign_hourly'), tests.id('org_a'), tests.id('slot_hourly'),
+        tests.id('candidate_contractor'), 'approved',
+        now() - interval '2 hours 5 minutes', now()),
+       (tests.id('assign_minimum'), tests.id('org_a'), tests.id('slot_minimum'),
+        tests.id('eligible_contractor'), 'approved',
+        now() - interval '40 minutes', now()),
+       (tests.id('assign_overtime'), tests.id('org_a'), tests.id('slot_overtime'),
+        tests.id('outsider_contractor'), 'approved',
+        now() - interval '10 hours', now());
+
+-- 2h05m rounds up to 2.25h at 9000 cents an hour.
+select is(app.compute_payout_cents(tests.id('assign_hourly')), 20250,
+  'hourly pay bills in quarter hours, rounded up');
+
+-- 40 minutes is 0.75h rounded up, but the slot has a four-hour minimum call.
+select is(app.compute_payout_cents(tests.id('assign_minimum')), 36000,
+  'a short call still bills the slot minimum');
+
+-- Ten hours: eight at the rate, two at one and a half.
+select is(app.compute_payout_cents(tests.id('assign_overtime')), 99000,
+  'hours past the overtime threshold bill at the multiplier');
+
+-- A flat slot ignores the clock entirely.
+select is(app.compute_payout_cents(tests.id('assign_confirmed')), 60000,
+  'a flat rate pays as quoted');
+
 select * from finish();
 rollback;

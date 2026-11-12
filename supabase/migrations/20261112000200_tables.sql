@@ -300,6 +300,9 @@ create table public.slots (
   rate_amount_cents  integer not null check (rate_amount_cents >= 0),
   -- e.g. {"after_hours": 8, "multiplier": 1.5} (PRD "Payout").
   overtime_rule      jsonb,
+  -- Minimum call for hourly work: a short shoot that still cost the
+  -- contractor a journey bills at least this many hours. Null means none.
+  minimum_hours      numeric(5, 2) check (minimum_hours is null or minimum_hours > 0),
   call_time          timestamptz not null,
   -- Equipment categories the slot requires; matched against the roster's equipment.
   required_gear      text[] not null default '{}',
@@ -438,7 +441,9 @@ create table public.deliverable_reviews (
   decision       public.review_decision not null,
   notes          text,
   reviewer_id    uuid not null references auth.users (id) on delete restrict,
-  created_at     timestamptz not null default now(),
+  -- clock_timestamp(), not now(): app.deliverable_is_approved reads the most
+  -- recent review, and several reviews can land in one transaction.
+  created_at     timestamptz not null default clock_timestamp(),
   constraint deliverable_reviews_notes_on_changes
     check (decision <> 'changes_requested' or length(btrim(coalesce(notes, ''))) > 0)
 );
@@ -647,7 +652,9 @@ create table public.activity_log (
   entity_id   uuid,
   action      text not null,
   change      jsonb not null default '{}'::jsonb,
-  created_at  timestamptz not null default now()
+  -- clock_timestamp(), not now(): one transition writes several rows, and the
+  -- audit trail has to order them as they happened.
+  created_at  timestamptz not null default clock_timestamp()
 );
 
 create index activity_log_org_id_idx on public.activity_log (org_id, created_at desc);

@@ -38,9 +38,16 @@ Two matrix cells needed a column that the PRD data model does not list:
 
 - **`events.area_label`** — row 1 gives a contractor the event's *area* but not
   its address. The PRD describes this as "neighborhood, not exact address" in
-  the job board screen; it needs somewhere to live.
+  the job board screen; it needs somewhere to live. Slicing the address would
+  leak the block and reverse-geocoding the pin would put a third-party service
+  in the read path. `transition_event` refuses `draft → staffing` when the
+  event has an open-call slot and no area label, so a job board card cannot go
+  up blank.
 - **`briefs.summary`** — row 4 gives an opted-in contractor a "Summary line
-  only". The brief's `body` stays packet data.
+  only". Truncating `body` would leak whatever its first sentence happens to
+  contain, so the summary is written separately. The `body` stays packet data.
+
+Both agreed with the client.
 
 ## Decisions taken, worth confirming
 
@@ -74,7 +81,10 @@ Two matrix cells needed a column that the PRD data model does not list:
 
 ## Interpretations in the state machines
 
-These fill gaps the PRD and CLAUDE.md leave open. Each is cheap to change.
+These filled gaps the PRD and CLAUDE.md left open. All four open questions
+below were put to the client and agreed on 2026-11-12; CLAUDE.md's "State
+machines" section has been updated to match, and the behaviour described here
+is what the code now does.
 
 - **`invited → confirmed` directly.** CLAUDE.md lists
   `selected → confirmed`, and names `invited` only as an entry state. A direct
@@ -92,14 +102,25 @@ These fill gaps the PRD and CLAUDE.md leave open. Each is cheap to change.
 - **System moves** (`approved → paid`, `sent → paid`, `sent → failed`,
   `paid → reversed`) are allowed for the service role, which has no JWT, or for
   the owner. Everything else is refused from a client.
-- **No `staffed → staffing`.** If a confirmed contractor drops, the event is
-  left at `staffed` and the producer re-staffs the slot. CLAUDE.md's event
-  machine has no edge back to `staffing`. **Open question:** should dropping
-  un-staff the event?
-- **Hourly payouts** use `ceil(hours)` from the check-in and check-out stamps,
-  with `overtime_rule = {"after_hours": 8, "multiplier": 1.5}`. An hourly slot
-  with no recorded times falls back to the quoted rate rather than paying zero.
-  **Open question:** confirm the rounding — whole hours up, or quarter hours?
+- **`staffed → staffing` when a committed contractor leaves.** Agreed with the
+  client. "Staffed" is an invariant, not just a doorway: the PRD defines it as
+  "every required slot has a confirmed contractor", the client-facing term for
+  it is "Accepted", and the operations board flags unfilled slots. Leaving the
+  event at `staffed` would tell a client their shoot is accepted when nobody
+  is coming. `transition_assignment` demotes the event and releases the slot
+  (back to `open_call` or `inviting` by its staffing mode) when a `confirmed`
+  assignment moves to `cancelled` or `dropped` and a required slot is left
+  uncovered. Never from `in_progress` — by then the day has started.
+- **Hourly payouts** bill in quarter-hour increments rounded up, from the
+  check-in and check-out stamps, never below `slots.minimum_hours`, with
+  `overtime_rule = {"after_hours": 8, "multiplier": 1.5}` applied above the
+  threshold. Agreed with the client. Quarter hours are the freelance norm and
+  cap the rounding gift at 14 minutes rather than 59; the minimum call covers
+  the short shoot that still cost the contractor a journey. An hourly slot
+  with no recorded times falls back to the quoted rate rather than paying
+  zero. PRD "Questions for Moments to Media" still asks how contractors are
+  paid today, so the per-slot defaults want setting from their current
+  practice.
 
 ## Deliberately not in the database
 
@@ -119,17 +140,41 @@ These belong to the API and client layers and are not part of this migration:
 
 ## Verification status
 
-The suite in `supabase/tests` is written but **has not been run**: this machine
-has no Postgres, no Docker and no working Node toolchain (Apple Silicon with
-x86-only Node builds installed and Rosetta absent), so neither
-`supabase test db` nor a bare `pg_prove` can start.
+Green on CI as of run #14 (`b62423f`): all 8 files passing, against a Postgres
+the migrations are applied to from scratch on every run. Each run reports its
+own `Files=` and `Result:` line as a workflow notice, so the size of the suite
+is never a claim in a document.
 
-It is 8 files and roughly 190 assertions:
+Getting there took three fixes to the migration, all found by the suite and
+none visible by reading the SQL:
+
+- **The policy migration revoked the projection views.**
+  `20261112000500` opens with `revoke all on all tables in schema public`,
+  which in Postgres covers views, so it took back the grants
+  `20261112000400` had just made on `job_board`, `event_crew` and
+  `organization_public`. A contractor got `permission denied for view
+  job_board` — no job board, no open calls, nothing before confirmation. The
+  grants are now re-applied after the revoke.
+- **The audit trail could not be ordered.** `activity_log.created_at` and
+  `deliverable_reviews.created_at` defaulted to `now()`, the *transaction*
+  timestamp, so every row written by one transition shared it and "the most
+  recent entry" was undefined. That matters for the log, and more for
+  `app.deliverable_is_approved`, which decides approval from the latest
+  review. Both now default to `clock_timestamp()`.
+
+- **The slot release could not assign its own enum.** The `staffed → staffing`
+  cascade set `slots.status` from a `CASE` of two bare literals, which
+  resolves to `text` and will not assign to a `slot_status` column. It raised
+  `42804` and took the whole transition with it, so a contractor could not
+  drop at all. Both branches now cast explicitly.
+
+Everything else the suite caught was wrong expectations in the tests
+themselves, since corrected.
 
 | File | Covers |
 | --- | --- |
 | `01_schema_conventions.test.sql` | CLAUDE.md rules 1, 5, 6, 10 against the catalog: RLS everywhere, policies everywhere, `org_id` not null and indexed, every foreign key indexed, integer cents, no naive timestamps, status columns not writable, `anon` has nothing |
-| `02_tenant_isolation.test.sql` | Each tenant invisible to the other across all 22 org-scoped tables, both directions, plus three grafted-row attempts the composite keys must refuse |
+| `02_tenant_isolation.test.sql` | Each tenant invisible to the other across all 22 org-scoped tables, both directions, plus three grafted-row attempts the composite keys refuse |
 | `03_matrix_packet_visibility.test.sql` | Matrix rows 1-6, all five personas, and the 7-day window after completion |
 | `04_matrix_footage_money_profiles.test.sql` | Matrix rows 7-10, including the producer "own events" boundary |
 | `05_matrix_settings_and_writes.test.sql` | Matrix row 11 and the write side: who may insert, update and opt in |
@@ -137,7 +182,7 @@ It is 8 files and roughly 190 assertions:
 | `07_state_machine_assignment.test.sql` | `transition_assignment`: the full walk from invite to paid, the review loop, every exit, both confirm guards |
 | `08_state_machine_payout.test.sql` | `transition_payout`: who submits and approves, auto-approval under the threshold, webhook settlement, failure and reversal |
 
-To run them, either:
+Run them locally with:
 
 ```bash
 pnpm db:reset && pnpm db:test
