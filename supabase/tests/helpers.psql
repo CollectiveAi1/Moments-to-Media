@@ -199,21 +199,36 @@ begin
 end;
 $$;
 
-create or replace function tests.new_user(p_name text, p_email text, p_full_name text)
+-- auth.users.phone is unique, so fixture users need distinct numbers.
+create sequence if not exists tests.contact_seq;
+
+create or replace function tests.new_user(
+  p_name      text,
+  p_email     text,
+  p_full_name text,
+  p_confirmed boolean default true
+)
 returns uuid
 language plpgsql
 as $$
 declare
-  v_id uuid := gen_random_uuid();
+  v_id    uuid := gen_random_uuid();
+  v_phone text := '+1555' || lpad(nextval('tests.contact_seq')::text, 6, '0');
 begin
-  insert into auth.users (instance_id, id, aud, role, email, created_at, updated_at,
+  insert into auth.users (instance_id, id, aud, role, email, phone,
+                          email_confirmed_at, phone_confirmed_at,
+                          created_at, updated_at,
                           raw_app_meta_data, raw_user_meta_data)
   values ('00000000-0000-0000-0000-000000000000', v_id, 'authenticated', 'authenticated',
-          p_email, now(), now(),
+          p_email, v_phone,
+          case when p_confirmed then now() end,
+          case when p_confirmed then now() end,
+          now(), now(),
           '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb);
 
-  insert into public.profiles (user_id, full_name, phone, email)
-  values (v_id, p_full_name, '+15550100', p_email);
+  -- app.handle_new_user() has already made the profile from the auth row;
+  -- give it the readable name the tests assert on.
+  update public.profiles set full_name = p_full_name where user_id = v_id;
 
   insert into tests.fixture_ids (name, id) values (p_name, v_id);
   return v_id;

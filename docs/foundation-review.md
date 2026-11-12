@@ -122,6 +122,41 @@ is what the code now does.
   paid today, so the per-slot defaults want setting from their current
   practice.
 
+## Auth
+
+Phase 1's second item: passwordless sign-in, org membership and role claims.
+Three migrations, `20261112000700` to `20261112000900`.
+
+**There is no sign-up that is not an invitation.** The PRD puts self-serve
+signup in v2 and says contractors arrive by "invite by SMS link with
+passwordless sign-in", so `org_invitations` is the account-creation path. An
+invitation names an organization, a role and an email or phone; the owner
+invites admins and a producer invites contractors, which the insert policy
+enforces by role.
+
+An invitation is claimed only against a **verified** address. The claim runs
+when `email_confirmed_at` or `phone_confirmed_at` first becomes non-null, not
+when the auth row appears — otherwise signing up with someone else's address
+would burn their invitation before the magic link proved anything. For an
+existing login invited to a second organization no auth row changes at all, so
+the app calls `public.claim_invitations()` after sign-in; it is idempotent.
+
+`app.handle_new_user()` creates the `profiles` row, because passwordless
+sign-in carries no name and the rest of the schema assumes one exists.
+`full_name` falls back to the email local part.
+
+**The `org_roles` claim is for the clients, not for RLS.** The access token
+hook names each organization the person belongs to and the roles they hold
+there, so the apps can draw the organization switcher without a round trip.
+Policies keep reading `memberships`, which means suspending or removing
+someone takes effect immediately rather than at their next token refresh —
+up to an hour away at the current `jwt_expiry`. A test asserts that a
+suspended membership disappears from the claim, and that no client role can
+execute the hook.
+
+Registering the hook needed `[auth.hook.custom_access_token]` in
+`config.toml`, an auth configuration change, agreed before it was made.
+
 ## Deliberately not in the database
 
 These belong to the API and client layers and are not part of this migration:
