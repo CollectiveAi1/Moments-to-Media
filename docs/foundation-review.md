@@ -297,6 +297,38 @@ none visible by reading the SQL:
   the table's own grants, and `01_schema_conventions` fails the build if
   either slips again.
 
+And one the suite did **not** catch, found only by deploying:
+
+- **`anon` could execute every function in the public schema.** Supabase's
+  default privileges grant EXECUTE on each new function in `public` to anon.
+  `20261112000500` revoked that, but it ran before `000600`, `000800` and
+  `001000` created the state machines and the upload entry points, so each
+  arrived with the grant again — and `revoke all on function ... from public`
+  removes the PUBLIC entry, not an explicit per-role grant. The same mechanism
+  as the `org_invitations` table privileges above, which is the point: the
+  conventions test checked tables and not functions, so the second instance
+  went straight past it.
+
+  It mattered because several entry points read "no user id" as "a trusted
+  server context" — true of `service_role`, false of `anon`, whose JWT carries
+  a role claim and no `sub`. `transition_assignment`'s assignee check is
+  `user_id <> auth.uid()`, which is NULL rather than true when `auth.uid()` is
+  null, so it never raised; its system check was skipped outright. Confirm,
+  check in, mark uploaded and settle were all reachable without signing in, as
+  were payout `sent`/`paid`/`failed`/`reversed` and the whole upload ledger
+  including storage keys. `transition_event` was safe — `can_manage_event`
+  fails closed without a user id.
+
+  `20261112001100` takes the grant back, revokes the default for functions
+  added later, and refuses anonymous callers at each entry point so the
+  null-uid shorthand inside the internals means what it says.
+  `11_anon_access.test.sql` asserts all three, and `01_schema_conventions` now
+  fails the build if anon regains any function privilege in `public`.
+
+  The lesson for the remaining phases: every Supabase default privilege has to
+  be revoked per object *class*, and a deploy to a real project is part of the
+  gate, not a formality after it.
+
 Everything else the suite caught was wrong expectations in the tests
 themselves, since corrected.
 
@@ -312,6 +344,7 @@ themselves, since corrected.
 | `08_state_machine_payout.test.sql` | `transition_payout`: who submits and approves, auto-approval under the threshold, webhook settlement, failure and reversal |
 | `09_auth.test.sql` | Profile bootstrap, who may invite whom, claiming only against a verified address, the `org_roles` claim |
 | `10_upload_pipeline.test.sql` | Who may open an upload, the part plan and the derived object key, resuming, the verification that gates completion, idempotent completion, abort and fail, connector queueing, the in-flight guard, and the ledger's visibility |
+| `11_anon_access.test.sql` | An unauthenticated caller reaches no function in `public`: the grant is gone, the in-function guard holds even if it came back, and signed-in callers and the service role still get through |
 
 Run them locally with:
 
