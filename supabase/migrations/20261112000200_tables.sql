@@ -438,7 +438,9 @@ create table public.deliverable_reviews (
   decision       public.review_decision not null,
   notes          text,
   reviewer_id    uuid not null references auth.users (id) on delete restrict,
-  created_at     timestamptz not null default now(),
+  -- clock_timestamp(), not now(): app.deliverable_is_approved reads the most
+  -- recent review, and several reviews can land in one transaction.
+  created_at     timestamptz not null default clock_timestamp(),
   constraint deliverable_reviews_notes_on_changes
     check (decision <> 'changes_requested' or length(btrim(coalesce(notes, ''))) > 0)
 );
@@ -647,7 +649,9 @@ create table public.activity_log (
   entity_id   uuid,
   action      text not null,
   change      jsonb not null default '{}'::jsonb,
-  created_at  timestamptz not null default now()
+  -- clock_timestamp(), not now(): one transition writes several rows, and the
+  -- audit trail has to order them as they happened.
+  created_at  timestamptz not null default clock_timestamp()
 );
 
 create index activity_log_org_id_idx on public.activity_log (org_id, created_at desc);

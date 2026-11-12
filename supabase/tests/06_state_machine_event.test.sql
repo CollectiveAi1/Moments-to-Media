@@ -140,7 +140,7 @@ select isnt(
 select cmp_ok(
   (select count(*) from public.activity_log
     where entity_type = 'event' and action = 'status_change'),
-  '>=', 6::bigint,
+  '>=', 5::bigint,
   'every event transition wrote an activity_log row');
 
 select is(

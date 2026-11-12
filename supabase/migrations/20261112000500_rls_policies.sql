@@ -666,3 +666,13 @@ grant select on public.activity_log to authenticated;
 create policy activity_log_select_admin on public.activity_log
   for select to authenticated
   using (app.is_admin(org_id));
+
+-- ====================================================== the projection views
+-- `revoke all on all tables` at the top of this migration covers views too,
+-- so it took back what 20261112000400 granted. Without these, a contractor
+-- gets "permission denied for view job_board" and has no pre-confirm view of
+-- anything at all.
+
+grant select on public.job_board to authenticated;
+grant select on public.event_crew to authenticated;
+grant select on public.organization_public to authenticated;

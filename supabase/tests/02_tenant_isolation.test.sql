@@ -37,7 +37,8 @@ from unnest(array[
 -- ---- a contractor confirmed in B gets nothing from A
 
 select is(
-  tests.count_as(tests.id('contractor_b'), 'select 1 from public.events'),
+  tests.count_as(tests.id('contractor_b'),
+    format('select 1 from public.events where org_id = %L', tests.id('org_a'))),
   0::bigint,
   'a contractor in B sees no events in A');
 
