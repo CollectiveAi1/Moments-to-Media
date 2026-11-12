@@ -182,6 +182,23 @@ select ok(
   not has_schema_privilege('anon', 'app', 'usage'),
   'and anon cannot reach the app schema, where the internals live');
 
+-- Every function pins its search_path. Without one, a caller who can set
+-- `search_path` chooses which `now()` or `lower()` the body resolves to —
+-- which matters most in the BEFORE triggers, where the return value is what
+-- gets written. 20261112001200 closed the last four.
+select is(
+  (select count(*)
+     from pg_proc p
+     join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname in ('app', 'public')
+      and p.prokind = 'f'
+      and not exists (
+        select 1
+        from unnest(coalesce(p.proconfig, '{}'::text[])) as cfg
+        where cfg like 'search\_path=%')),
+  0::bigint,
+  'every function in app and public pins its search_path');
+
 -- ---- the pre-confirm projection cannot leak packet columns
 
 select hasnt_column('public', 'job_board', 'address',
