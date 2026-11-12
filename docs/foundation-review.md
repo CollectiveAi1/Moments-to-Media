@@ -261,7 +261,7 @@ These belong to the API and client layers and are not part of this migration:
 
 ## Verification status
 
-Green on CI as of run #23: `Files=10, Tests=412, Result: PASS`, against a
+Green on CI as of run #27: `Files=11, Tests=436, Result: PASS`, against a
 Postgres the migrations are applied to from scratch on every run. Each run
 reports its own `Files=` and `Result:` line as a workflow notice, so the size
 of the suite is never a claim in a document.
