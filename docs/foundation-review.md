@@ -329,6 +329,17 @@ And one the suite did **not** catch, found only by deploying:
   be revoked per object *class*, and a deploy to a real project is part of the
   gate, not a formality after it.
 
+- **Four functions resolved through the caller's `search_path`.** Flagged by
+  the same advisor run: `app.touch_updated_at`, `app.current_user_id`,
+  `app.miles_between` and `app.normalise_invitation_identity`. None is
+  SECURITY DEFINER, so this was hardening rather than a hole — but a caller
+  who can set `search_path` could put their own `now()`, `lower()` or
+  `btrim()` ahead of pg_catalog's, and both of the trigger functions write
+  whatever they return. `touch_updated_at` fires on twenty-seven tables and
+  `normalise_invitation_identity` decides what an invitation matches on.
+  `20261112001200` pins all four, and `01_schema_conventions` fails the build
+  if a function in `app` or `public` ever arrives without one.
+
 Everything else the suite caught was wrong expectations in the tests
 themselves, since corrected.
 

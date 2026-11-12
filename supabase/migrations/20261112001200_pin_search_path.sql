@@ -6,8 +6,9 @@
 -- this is hardening rather than a hole: a caller who can set `search_path`
 -- could put their own `now()`, `lower()` or `btrim()` ahead of pg_catalog's
 -- and have a BEFORE trigger write whatever it returned. `touch_updated_at`
--- runs on nineteen tables and `normalise_invitation_identity` decides what an
--- invitation matches on, so neither is somewhere to leave that open.
+-- runs on twenty-seven of the twenty-nine tables and
+-- `normalise_invitation_identity` decides what an invitation matches on, so
+-- neither is somewhere to leave that open.
 --
 -- Everything these four call is either in pg_catalog, which stays reachable
 -- with an empty search_path, or already schema-qualified (`auth.uid()`), so
