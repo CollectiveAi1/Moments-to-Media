@@ -253,9 +253,13 @@ begin
     ('payout_a', v_payout_a), ('payout_a2', v_payout_a2), ('payout_b', v_payout_b);
 
   -- ---- organizations
+  -- Slugs are derived from the generated ids. `supabase db reset` applies
+  -- supabase/seed.sql before the suite runs, so a fixed slug would collide
+  -- with the development seed's organization; the fixture must not assume an
+  -- empty database.
   insert into public.organizations (id, name, slug, in_app_payments_enabled, settings)
   values (
-    v_org_a, 'Moments to Media', 'moments-to-media', true,
+    v_org_a, 'Test Org A', 'test-a-' || substr(replace(v_org_a::text, '-', ''), 1, 12), true,
     jsonb_build_object(
       'reminder_hours_before_call', jsonb_build_array(24, 2),
       'invite_window_hours', 24,
@@ -267,7 +271,7 @@ begin
   );
 
   insert into public.organizations (id, name, slug, in_app_payments_enabled)
-  values (v_org_b, 'Other Media Co', 'other-media-co', false);
+  values (v_org_b, 'Test Org B', 'test-b-' || substr(replace(v_org_b::text, '-', ''), 1, 12), false);
 
   -- ---- people
   v_owner_a := tests.new_user('owner_a', 'owner-a@example.test', 'Owner A');
