@@ -202,6 +202,15 @@ grant execute on function app.claim_invitations_for(uuid) to service_role;
 
 alter table public.org_invitations enable row level security;
 
+-- Supabase's default privileges grant the API roles everything on each new
+-- table in public, which is how this one arrived with seven privileges for
+-- anon and a full-table UPDATE for authenticated that would have made the
+-- column-level grant below meaningless. Take it back for this table, and
+-- stop the default applying to tables added later — 01_schema_conventions
+-- fails the build if either slips.
+revoke all on public.org_invitations from anon, authenticated;
+alter default privileges in schema public revoke all on tables from anon, authenticated;
+
 grant select, insert, delete on public.org_invitations to authenticated;
 -- status is writable so an admin can revoke; the check below stops a client
 -- writing 'accepted', which only the claim path may do.
