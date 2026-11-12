@@ -166,6 +166,57 @@ begin
 end;
 $$;
 
+-- 'NO_ERROR', or the SQLSTATE, for an unauthenticated caller: the anon role
+-- with an anon JWT, which is what a request carrying only the publishable key
+-- looks like. Used by 11_anon_access.
+create or replace function tests.error_as_anon(p_statement text)
+returns text
+language plpgsql
+as $$
+declare
+  v_state text := null;
+begin
+  perform set_config('request.jwt.claims', '{"role":"anon","aud":"anon"}', true);
+  perform set_config('role', 'anon', true);
+  begin
+    execute p_statement;
+  exception
+    when others then v_state := sqlstate;
+  end;
+  -- Inlined on purpose: the role is `anon` at this point, and it has no USAGE
+  -- on schema tests, so calling tests.as_db_owner() here would be denied
+  -- before it could switch back.
+  perform set_config('request.jwt.claims', '', true);
+  perform set_config('role', 'postgres', true);
+  return coalesce(v_state, 'NO_ERROR');
+end;
+$$;
+
+-- Anon claims presented by a role that *does* hold EXECUTE. This separates the
+-- two halves of the 20261112001100 fix: error_as_anon proves the grant is
+-- gone, this proves the in-function guard would stop it even if the grant
+-- came back.
+create or replace function tests.error_with_anon_claims(p_statement text)
+returns text
+language plpgsql
+as $$
+declare
+  v_state text := null;
+begin
+  perform set_config('request.jwt.claims', '{"role":"anon","aud":"anon"}', true);
+  perform set_config('role', 'authenticated', true);
+  begin
+    execute p_statement;
+  exception
+    when others then v_state := sqlstate;
+  end;
+  -- Inlined on purpose: see tests.count_as.
+  perform set_config('request.jwt.claims', '', true);
+  perform set_config('role', 'postgres', true);
+  return coalesce(v_state, 'NO_ERROR');
+end;
+$$;
+
 -- RLS filters an UPDATE or DELETE rather than failing it, so "denied" often
 -- means "nothing happened". This counts what the statement actually touched.
 create or replace function tests.rows_affected_as(p_user uuid, p_statement text)

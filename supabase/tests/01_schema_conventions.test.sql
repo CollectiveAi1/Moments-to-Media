@@ -165,6 +165,23 @@ select is(
   0::bigint,
   'anon has no table privileges in public');
 
+-- The table check above was not enough: Supabase's default privileges grant
+-- EXECUTE on every new *function* in public to anon as well, which is how the
+-- three state machines and the four upload entry points became callable
+-- without signing in. 20261112001100 took it back; this keeps it back.
+select is(
+  (select count(*)
+     from pg_proc p
+     join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public'
+      and has_function_privilege('anon', p.oid, 'execute')),
+  0::bigint,
+  'anon can execute no function in public');
+
+select ok(
+  not has_schema_privilege('anon', 'app', 'usage'),
+  'and anon cannot reach the app schema, where the internals live');
+
 -- ---- the pre-confirm projection cannot leak packet columns
 
 select hasnt_column('public', 'job_board', 'address',
