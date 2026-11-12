@@ -518,8 +518,13 @@ begin
   -- if that leaves a required slot uncovered. The event-cancelled path calls
   -- in with p_cascade false, so cancelling an event does not demote it here.
   if p_to in ('cancelled', 'dropped') and p_cascade then
+    -- Both branches cast explicitly: a CASE of two bare literals resolves to
+    -- text, which will not assign to a slot_status column.
     update public.slots
-       set status = case when staffing_mode = 'open_call' then 'open_call' else 'inviting' end
+       set status = case
+                      when staffing_mode = 'open_call' then 'open_call'::public.slot_status
+                      else 'inviting'::public.slot_status
+                    end
      where id = v_assignment.slot_id
        and status = 'filled';
 
