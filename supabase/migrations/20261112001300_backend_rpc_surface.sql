@@ -16,6 +16,9 @@
 --   * They are granted to service_role and to nobody else. 20261112001100
 --     revoked the default privileges for functions in `public`, so these
 --     arrive with no grants at all and get exactly the one stated here.
+--   * Each pins `search_path`, as 20261112001200 requires of every function
+--     in `app` and `public`. The bodies are schema-qualified, so an empty
+--     one resolves everything it needs.
 --   * 01_schema_conventions fails the build if a client role ever gains
 --     execute on them. A contractor who could call complete_upload could
 --     declare their own verification, which is the thing CLAUDE.md rule 7
@@ -27,6 +30,7 @@ create or replace function public.attach_multipart(
 )
 returns public.uploads
 language sql
+set search_path = ''
 as $$
   select app.attach_multipart(p_upload, p_multipart_upload_id);
 $$;
@@ -41,6 +45,7 @@ create or replace function public.complete_upload(
 )
 returns public.uploads
 language sql
+set search_path = ''
 as $$
   select app.complete_upload(p_upload, p_verified_bytes, p_verified_checksum);
 $$;
@@ -54,6 +59,7 @@ create or replace function public.fail_upload(
 )
 returns public.uploads
 language sql
+set search_path = ''
 as $$
   select app.fail_upload(p_upload, p_reason);
 $$;
