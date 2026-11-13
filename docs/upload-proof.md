@@ -23,10 +23,18 @@ and the result is recorded here.
 
 ## What must exist first
 
-1. **A Cloudflare R2 bucket in Moments to Media's account**, private, with an
-   S3-compatible API token scoped to it. CLAUDE.md: the client owns every
-   account this runs on, so the bucket and the token are created in their
-   account, not ours.
+1. ~~**A Cloudflare R2 bucket**~~ — created: `moments-to-media-footage`,
+   location hint `ENAM`, Standard storage class, default jurisdiction, no
+   public access. **It is in the CollectiveAi Cloudflare account, not Moments
+   to Media's**, which is the same ownership gap recorded for the Supabase
+   project in `foundation-review.md` and has to close before this bucket holds
+   real footage. An R2 bucket cannot be moved between accounts: closing it
+   means creating the bucket again in the client's account and copying what is
+   there.
+
+   Still outstanding: **an S3-compatible API token scoped to this bucket**,
+   Object Read & Write, nothing wider. R2 has no API for minting those, so it
+   is a dashboard step by hand whoever does it.
 2. **The credentials in Edge Function secrets** — `R2_ACCOUNT_ID`,
    `R2_BUCKET`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`. Rule 4: nowhere
    else, and never in the mobile bundle. The functions read them through

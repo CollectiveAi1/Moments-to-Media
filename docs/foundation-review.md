@@ -419,3 +419,41 @@ and the policy, column and enum-label sets match by checksum.
 running it against this project should be a no-op, and `supabase db reset`
 against a fresh project is the real test that these files reproduce the schema
 from scratch.
+
+## The footage bucket
+
+Cloudflare R2 bucket `moments-to-media-footage`, created 2026-11-13, location
+hint `ENAM`, Standard storage class, default jurisdiction. No public access and
+no custom domain: every read and write goes through a presigned URL the Edge
+Functions mint, which is CLAUDE.md rule 7 — footage never passes through our
+servers, and nothing reaches the bucket without a signature that expires.
+
+**It is in the CollectiveAi Cloudflare account, not Moments to Media's.** This
+is the second account with the same problem, after the Supabase project above,
+and it is worse here than there: a Supabase project holds a schema that these
+migration files reproduce from scratch, while a bucket holds the footage
+itself. R2 has no account-to-account transfer, so closing this gap means
+creating the bucket in the client's account and copying every object across.
+That is cheap today, with the bucket empty, and expensive after the first real
+shoot. It should happen before a contractor uploads anything that matters.
+
+The name is deliberate rather than generic. Bucket names are visible in every
+presigned URL, so `footage` says what is inside without naming a client, an
+event or a contractor.
+
+Three things are not configured yet, each for a reason:
+
+* **The API token.** Object Read & Write scoped to this one bucket. Cloudflare
+  exposes no API for creating R2 tokens, so this is a dashboard step by hand —
+  and it should stay one, because the token is the credential that can write
+  footage and whoever holds it should have chosen its scope deliberately.
+* **A lifecycle rule to abort stale multipart uploads.** R2 bills for the parts
+  of a multipart upload that was never completed or aborted, and
+  `upload-start`'s failure path only aborts the multipart it opened itself — a
+  client that vanishes mid-upload leaves parts behind. A rule aborting
+  incomplete multipart uploads after 7 days is the backstop. The proof's last
+  row ("Nothing is left billing") is what will catch its absence.
+* **CORS.** Not needed by the Expo client, which is not a browser. The Phase 2
+  desktop web uploader will need `PUT` allowed from its origin, and that is
+  the right time to add it rather than opening it now for a client that does
+  not exist.
