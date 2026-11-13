@@ -155,7 +155,33 @@ suspended membership disappears from the claim, and that no client role can
 execute the hook.
 
 Registering the hook needed `[auth.hook.custom_access_token]` in
-`config.toml`, an auth configuration change, agreed before it was made.
+`config.toml`, an auth configuration change, agreed before it was made. That
+block only governs the local stack: on a hosted project the hook is a GoTrue
+setting and has to be switched on separately, under Authentication → Hooks →
+Add hook → "Customize Access Token (JWT) Claims hook", or through
+`PATCH /v1/projects/{ref}/config/auth` with `hook_custom_access_token_enabled`
+and `hook_custom_access_token_uri`. It is on for the project below, pointing
+at `pg-functions://postgres/app/custom_access_token`, the same URI as
+`config.toml`.
+
+**The hook is `security definer`, which Supabase's own docs advise against.**
+Their pattern is a plain function plus `grant select` on the table to
+`supabase_auth_admin` and an RLS policy letting that role read it. Ours is
+definer and owned by `postgres`, so it reads `memberships` through that role's
+`rolbypassrls`. The trade: their way makes `memberships` readable by a role
+outside the app's permission model and adds a policy whose only purpose is the
+hook, which is more standing access and more to get wrong than a function no
+client can execute. Worth revisiting if the hook ever needs to read a second
+table, because the definer blast radius grows with it.
+
+The shape of the return value matters more than it looks. Auth rejects a token
+if the hook drops any of `iss`, `aud`, `exp`, `iat`, `sub`, `role`, `aal`,
+`session_id`, `email`, `phone` or `is_anonymous`, so the function adds to the
+claims it was handed (`jsonb_set(event, '{claims}', …)`) rather than building
+an object from scratch. Postgres hooks also get two seconds and their errors
+are **not** retried, so a slow or failing hook fails sign-in outright rather
+than degrading — which is why this one is a single indexed lookup on
+`memberships` and nothing more.
 
 ## Uploads
 
@@ -365,3 +391,31 @@ pnpm db:reset && pnpm db:test
 
 on a machine with Docker and the Supabase CLI, or push the branch and let CI do
 it — `.github/workflows/ci.yml` runs exactly that.
+
+## The hosted project
+
+Supabase project `moments-to-media`, ref `uvjtcwpfksmgmnfvghwz`, region
+`us-west-1`, free plan. It carries every migration in this directory and no
+application data.
+
+Two things about it are worth knowing before anyone touches it.
+
+**It is in the CollectiveAi organization, not Moments to Media's.** CLAUDE.md
+says the client owns every account this runs on, and this project does not
+satisfy that. It was opened as a staging target with that stated; the client's
+own organization is where this has to live before it holds anything real, and
+moving it means recreating the project rather than renaming it.
+
+**The migrations were applied through the Supabase connection, not
+`supabase db push`.** No Supabase CLI will run on the machine this was built
+on — Homebrew there is the Intel build on an arm64 Mac and Rosetta cannot run
+x86_64 binaries — so each file was applied verbatim and recorded in the
+migration history under its own version name. A later `db push` from a working
+CLI will see them as already applied. The result was checked rather than
+assumed: all 49 function bodies match the files byte for byte by `md5(prosrc)`,
+and the policy, column and enum-label sets match by checksum.
+
+`supabase db push` is still the canonical path. If a working CLI ever exists,
+running it against this project should be a no-op, and `supabase db reset`
+against a fresh project is the real test that these files reproduce the schema
+from scratch.
