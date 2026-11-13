@@ -419,3 +419,78 @@ and the policy, column and enum-label sets match by checksum.
 running it against this project should be a no-op, and `supabase db reset`
 against a fresh project is the real test that these files reproduce the schema
 from scratch.
+
+## The footage bucket
+
+Cloudflare R2 bucket `moments-to-media-footage`, created 2026-11-13, location
+hint `ENAM`, Standard storage class, default jurisdiction. No public access and
+no custom domain: every read and write goes through a presigned URL the Edge
+Functions mint, which is CLAUDE.md rule 7 — footage never passes through our
+servers, and nothing reaches the bucket without a signature that expires.
+
+**It is in the CollectiveAi Cloudflare account, not Moments to Media's.** This
+is the second account with the same problem, after the Supabase project above,
+and it is worse here than there: a Supabase project holds a schema that these
+migration files reproduce from scratch, while a bucket holds the footage
+itself. R2 has no account-to-account transfer, so closing this gap means
+creating the bucket in the client's account and copying every object across.
+That is cheap today, with the bucket empty, and expensive after the first real
+shoot. It should happen before a contractor uploads anything that matters.
+
+The name is deliberate rather than generic. Bucket names are visible in every
+presigned URL, so `footage` says what is inside without naming a client, an
+event or a contractor.
+
+Three things are not configured yet, each for a reason:
+
+* **The API token.** Object Read & Write scoped to this one bucket. Cloudflare
+  exposes no API for creating R2 tokens, so this is a dashboard step by hand —
+  and it should stay one, because the token is the credential that can write
+  footage and whoever holds it should have chosen its scope deliberately.
+* **A lifecycle rule to abort stale multipart uploads.** R2 bills for the parts
+  of a multipart upload that was never completed or aborted, and
+  `upload-start`'s failure path only aborts the multipart it opened itself — a
+  client that vanishes mid-upload leaves parts behind. A rule aborting
+  incomplete multipart uploads after 7 days is the backstop. The proof's last
+  row ("Nothing is left billing") is what will catch its absence.
+* **CORS.** Not needed by the Expo client, which is not a browser. The Phase 2
+  desktop web uploader will need `PUT` allowed from its origin, and that is
+  the right time to add it rather than opening it now for a client that does
+  not exist.
+
+## The deployed Edge Functions
+
+`upload-start`, `upload-presign` and `upload-complete` are live on
+`uvjtcwpfksmgmnfvghwz`, version 1, `verify_jwt` on. An unauthenticated `POST`
+to each returns `401 UNAUTHORIZED_NO_AUTH_HEADER` from the gateway, so none of
+the function code runs for a caller without a token. That was checked, not
+assumed.
+
+**They were deployed file by file through the Supabase connection, not by
+`supabase functions deploy`.** Same cause as the migrations: no CLI on this
+machine. The consequence is worth stating plainly, because it is a weaker
+guarantee than a CLI deploy gives. A CLI deploy bundles the repository; this
+deploy sent each file's contents as an argument, which means the deployed
+bundle could in principle differ from the repository without anything
+complaining.
+
+So it was verified the same way the migrations were. All nine files —
+`deno.json`, `_shared/env.ts`, `_shared/http.ts`, `_shared/db.ts`,
+`_shared/r2.ts`, `_shared/parts.ts` and the three `index.ts` entrypoints —
+were diffed against the files in `supabase/functions` and are identical. For
+`upload-start` the comparison used the text the deploy API returned when asked
+for the function back, which is the stronger direction: it is what the platform
+stored, not what was believed to have been sent.
+
+Two things follow for anyone deploying next:
+
+* **A CI deploy job would remove this whole class of doubt**, by running
+  `supabase functions deploy` from the checked-out repository on merge to
+  `main`. It needs a `SUPABASE_ACCESS_TOKEN` in the GitHub secrets, which is
+  an auth credential and so not something to add without asking. It is the
+  right next change to the pipeline, and it is not made here.
+* **The functions are live and currently non-functional.** The four R2
+  secrets do not exist yet, so `readEnv()` throws on the first call and the
+  caller gets a 500 reading "the upload service is misconfigured" — no secret
+  name, no value. That is rule 4 working as intended, and it is also the
+  state the project is in until the credentials are set.

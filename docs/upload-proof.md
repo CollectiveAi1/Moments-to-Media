@@ -23,10 +23,18 @@ and the result is recorded here.
 
 ## What must exist first
 
-1. **A Cloudflare R2 bucket in Moments to Media's account**, private, with an
-   S3-compatible API token scoped to it. CLAUDE.md: the client owns every
-   account this runs on, so the bucket and the token are created in their
-   account, not ours.
+1. ~~**A Cloudflare R2 bucket**~~ — created: `moments-to-media-footage`,
+   location hint `ENAM`, Standard storage class, default jurisdiction, no
+   public access. **It is in the CollectiveAi Cloudflare account, not Moments
+   to Media's**, which is the same ownership gap recorded for the Supabase
+   project in `foundation-review.md` and has to close before this bucket holds
+   real footage. An R2 bucket cannot be moved between accounts: closing it
+   means creating the bucket again in the client's account and copying what is
+   there.
+
+   Still outstanding: **an S3-compatible API token scoped to this bucket**,
+   Object Read & Write, nothing wider. R2 has no API for minting those, so it
+   is a dashboard step by hand whoever does it.
 2. **The credentials in Edge Function secrets** — `R2_ACCOUNT_ID`,
    `R2_BUCKET`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`. Rule 4: nowhere
    else, and never in the mobile bundle. The functions read them through
@@ -48,10 +56,29 @@ and the result is recorded here.
      On a mismatch it calls `public.fail_upload` and returns 409. It does not
      delete the object: 50 GB of someone's footage is worth a human look.
 
-   Deploy them with `supabase functions deploy upload-start upload-presign
-   upload-complete`, and set the secrets with `supabase secrets set` before
-   the first call. They are typechecked, linted and unit-tested in CI; what
-   CI cannot do is call R2, which is what this document is for.
+   ~~Deploy them~~ — deployed to `uvjtcwpfksmgmnfvghwz`, all three ACTIVE at
+   version 1 with `verify_jwt` on, which was checked rather than assumed: an
+   unauthenticated `POST` to each returns
+   `401 UNAUTHORIZED_NO_AUTH_HEADER` at the gateway, before any of this code
+   runs.
+
+   They were deployed through the Supabase connection rather than
+   `supabase functions deploy`, for the same reason the migrations were — no
+   Supabase CLI runs on the machine this was built on. That means the files
+   were handed to the deploy API individually instead of being bundled from
+   the repository, so each one was read back afterwards and diffed against
+   its file here: all nine (`deno.json`, five `_shared` modules, three
+   entrypoints) are identical. `supabase functions deploy` from the
+   repository remains the canonical path and should be a no-op.
+
+   The secrets are still missing, so every call currently fails at
+   `readEnv()` with a 500 saying the service is misconfigured and naming
+   nothing. That is the designed behaviour, not a deployment fault — but it
+   does mean these endpoints are live and non-functional until step 2 is
+   done.
+
+   They are typechecked, linted and unit-tested in CI; what CI cannot do is
+   call R2, which is what this document is for.
 
 4. **A client that can send the parts.** The Expo native module for the real
    thing; a script against the same Edge Functions is enough for this proof,
