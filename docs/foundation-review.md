@@ -494,3 +494,36 @@ Two things follow for anyone deploying next:
   caller gets a 500 reading "the upload service is misconfigured" — no secret
   name, no value. That is rule 4 working as intended, and it is also the
   state the project is in until the credentials are set.
+
+## A migration the deploy did not carry
+
+`20261112001300_backend_rpc_surface` was merged to `main` and left unapplied
+on the hosted project for a day. The Edge Functions were deployed and verified
+byte for byte against the repository, and that verification said nothing about
+the database they call: `public.attach_multipart`, `public.complete_upload` and
+`public.fail_upload` did not exist, only the `app.*` originals, which PostgREST
+cannot see.
+
+It surfaced the first time anything ran end to end, as
+`PGRST202: Could not find the function public.fail_upload(p_reason, p_upload)
+in the schema cache` — and it surfaced from the *failure* path, because the
+R2 call ahead of it had already failed for an unrelated reason and the handler
+was trying to mark the upload failed.
+
+The cause is ordinary and worth naming: the migration was written on the same
+branch as the functions, after the earlier migrations had been applied by hand,
+and deploying a function does not apply a migration. Nothing checked that the
+schema the functions expect is the schema that is there.
+
+Two things follow:
+
+* The CI deploy job described above should apply migrations as well as deploy
+  functions, in that order, from the same commit. One command that does both is
+  the only way these stop drifting.
+* Until then, applying a migration to the hosted project is a step someone has
+  to remember after every merge that adds one.
+
+Applied 2026-11-13 and verified: all three exist in `public`, `SECURITY
+INVOKER`, `search_path` pinned to the empty string, granted to `service_role`
+and nothing else. An anonymous caller gets `42501 permission denied` rather
+than a not-found, which also proves PostgREST's schema cache is current.
