@@ -457,3 +457,40 @@ Three things are not configured yet, each for a reason:
   desktop web uploader will need `PUT` allowed from its origin, and that is
   the right time to add it rather than opening it now for a client that does
   not exist.
+
+## The deployed Edge Functions
+
+`upload-start`, `upload-presign` and `upload-complete` are live on
+`uvjtcwpfksmgmnfvghwz`, version 1, `verify_jwt` on. An unauthenticated `POST`
+to each returns `401 UNAUTHORIZED_NO_AUTH_HEADER` from the gateway, so none of
+the function code runs for a caller without a token. That was checked, not
+assumed.
+
+**They were deployed file by file through the Supabase connection, not by
+`supabase functions deploy`.** Same cause as the migrations: no CLI on this
+machine. The consequence is worth stating plainly, because it is a weaker
+guarantee than a CLI deploy gives. A CLI deploy bundles the repository; this
+deploy sent each file's contents as an argument, which means the deployed
+bundle could in principle differ from the repository without anything
+complaining.
+
+So it was verified the same way the migrations were. All nine files —
+`deno.json`, `_shared/env.ts`, `_shared/http.ts`, `_shared/db.ts`,
+`_shared/r2.ts`, `_shared/parts.ts` and the three `index.ts` entrypoints —
+were diffed against the files in `supabase/functions` and are identical. For
+`upload-start` the comparison used the text the deploy API returned when asked
+for the function back, which is the stronger direction: it is what the platform
+stored, not what was believed to have been sent.
+
+Two things follow for anyone deploying next:
+
+* **A CI deploy job would remove this whole class of doubt**, by running
+  `supabase functions deploy` from the checked-out repository on merge to
+  `main`. It needs a `SUPABASE_ACCESS_TOKEN` in the GitHub secrets, which is
+  an auth credential and so not something to add without asking. It is the
+  right next change to the pipeline, and it is not made here.
+* **The functions are live and currently non-functional.** The four R2
+  secrets do not exist yet, so `readEnv()` throws on the first call and the
+  caller gets a 500 reading "the upload service is misconfigured" — no secret
+  name, no value. That is rule 4 working as intended, and it is also the
+  state the project is in until the credentials are set.
