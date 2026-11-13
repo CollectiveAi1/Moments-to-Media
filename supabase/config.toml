@@ -53,3 +53,16 @@ auth_token = "env(TWILIO_AUTH_TOKEN)"
 [storage]
 enabled = true
 file_size_limit = "50MiB"
+
+# The upload Edge Functions (PRD "Footage pipeline"). verify_jwt is the
+# default; it is stated per function because these are the only endpoints a
+# contractor's device calls directly, and the caller's token is passed
+# through to PostgREST so auth.uid() inside start_upload is them.
+[functions.upload-start]
+verify_jwt = true
+
+[functions.upload-presign]
+verify_jwt = true
+
+[functions.upload-complete]
+verify_jwt = true

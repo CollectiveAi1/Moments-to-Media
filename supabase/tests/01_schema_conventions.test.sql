@@ -182,6 +182,29 @@ select ok(
   not has_schema_privilege('anon', 'app', 'usage'),
   'and anon cannot reach the app schema, where the internals live');
 
+-- 20261112001300 put three wrappers in `public` so the upload Edge Functions
+-- can reach the `app` internals through PostgREST. They are backend-only: a
+-- contractor who could call complete_upload could declare their own
+-- verification, which is the thing CLAUDE.md rule 7 exists to stop.
+select is(
+  (select count(*)
+     from pg_proc p
+     join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public'
+      and p.proname in ('attach_multipart', 'complete_upload', 'fail_upload')),
+  3::bigint,
+  'the three backend upload RPCs exist in public for PostgREST to reach');
+
+select is(
+  (select count(*)
+     from pg_proc p
+     join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public'
+      and p.proname in ('attach_multipart', 'complete_upload', 'fail_upload')
+      and has_function_privilege('authenticated', p.oid, 'execute')),
+  0::bigint,
+  'and no signed-in client can execute any of them');
+
 -- Every function pins its search_path. Without one, a caller who can set
 -- `search_path` chooses which `now()` or `lower()` the body resolves to —
 -- which matters most in the BEFORE triggers, where the return value is what

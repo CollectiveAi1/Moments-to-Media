@@ -60,6 +60,38 @@ jobs:
       - name: Lint schema
         run: supabase db lint --level error
 
+  functions:
+    name: Edge Functions (typecheck, lint, unit tests)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Supabase Edge Functions are Deno, and nothing else in this repo can
+      # check them: the pgTAP job never loads them and the Node job does not
+      # see supabase/functions. Without this they would ship unverified.
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Typecheck
+        working-directory: supabase/functions
+        run: deno check **/*.ts
+
+      - name: Lint
+        working-directory: supabase/functions
+        run: deno lint
+
+      - name: Format
+        working-directory: supabase/functions
+        run: deno fmt --check
+
+      # The R2 calls need a bucket; these cover the pure logic around them —
+      # key encoding, the completion XML, the 200-with-error-body case, which
+      # parts get signed, and that no failure path leaks a secret.
+      - name: Unit tests
+        working-directory: supabase/functions
+        run: deno test --allow-env
+
   node:
     name: Typecheck, lint and unit tests
     runs-on: ubuntu-latest
