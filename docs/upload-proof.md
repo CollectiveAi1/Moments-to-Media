@@ -29,19 +29,30 @@ and the result is recorded here.
    account, not ours.
 2. **The credentials in Edge Function secrets** — `R2_ACCOUNT_ID`,
    `R2_BUCKET`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`. Rule 4: nowhere
-   else, and never in the mobile bundle.
-3. **The three Edge Functions**, which are the other half of the pipeline:
-   - `upload-start` — calls `public.start_upload`, then R2
-     `CreateMultipartUpload`, then `app.attach_multipart`, and returns the
-     plan with presigned part URLs.
-   - `upload-presign` — re-signs the URLs for the parts
-     `public.upload_resume_plan` says are missing. Part URLs are deliberately
-     short-lived, so a 50 GB upload will outlive its first batch and *must*
-     re-sign mid-flight. That is part of what this proves.
-   - `upload-complete` — R2 `CompleteMultipartUpload`, then `HEAD` the
-     object, then `app.complete_upload` with the size and checksum R2
-     reports. On a mismatch it calls `app.fail_upload` and aborts the
-     multipart upload so the parts stop being billed.
+   else, and never in the mobile bundle. The functions read them through
+   `_shared/env.ts`, which fails fast naming any that are absent and never
+   echoes a value, so a misconfigured deploy says so on the first call
+   instead of signing something unusable.
+3. ~~**The three Edge Functions**~~ — built, in `supabase/functions`:
+   - `upload-start` — calls `public.start_upload` with the contractor's own
+     token, then R2 `CreateMultipartUpload`, then `public.attach_multipart`
+     with the service role, and returns the plan with the first window of
+     presigned part URLs (100 by default; 6,400 signed URLs would be a 3 MB
+     response).
+   - `upload-presign` — re-signs the parts `public.upload_resume_plan` says
+     are still missing. Part URLs last 15 minutes, so a 50 GB upload outlives
+     its first batch and comes back here; that is the normal path, and it is
+     one of the things the proof has to exercise.
+   - `upload-complete` — R2 `CompleteMultipartUpload`, then `HEAD` with
+     checksum mode on, then `public.complete_upload` with what R2 reported.
+     On a mismatch it calls `public.fail_upload` and returns 409. It does not
+     delete the object: 50 GB of someone's footage is worth a human look.
+
+   Deploy them with `supabase functions deploy upload-start upload-presign
+   upload-complete`, and set the secrets with `supabase secrets set` before
+   the first call. They are typechecked, linted and unit-tested in CI; what
+   CI cannot do is call R2, which is what this document is for.
+
 4. **A client that can send the parts.** The Expo native module for the real
    thing; a script against the same Edge Functions is enough for this proof,
    and is what makes the throttling easy to control.

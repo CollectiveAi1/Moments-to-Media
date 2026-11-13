@@ -139,5 +139,51 @@ select is(
     format('select public.transition_payout(%L, ''paid'')', gen_random_uuid())),
   'P0002', 'and the payout machine');
 
+-- ------------------------------------------ the backend-only upload RPCs
+-- 20261112001300. service_role reaches them; nobody else does, signed in or
+-- not. These are the calls that declare an upload verified.
+
+select is(
+  tests.error_as_anon(
+    format('select public.complete_upload(%L, 1, ''sha256:x'')', tests.id('upload_a'))),
+  '42501', 'anon cannot declare an upload complete');
+
+select is(
+  tests.error_as(tests.id('confirmed_contractor'),
+    format('select public.complete_upload(%L, 1, ''sha256:x'')', tests.id('upload_a'))),
+  '42501', 'nor can the contractor who owns the upload');
+
+select is(
+  tests.error_as(tests.id('owner_a'),
+    format('select public.complete_upload(%L, 1, ''sha256:x'')', tests.id('upload_a'))),
+  '42501', 'nor can the organization owner');
+
+select is(
+  tests.error_as(tests.id('producer_a'),
+    format('select public.attach_multipart(%L, ''r2-forged'')', tests.id('upload_a'))),
+  '42501', 'and a producer cannot attach a multipart upload');
+
+select is(
+  tests.error_as(tests.id('owner_a'),
+    format('select public.fail_upload(%L, ''forced'')', tests.id('upload_a'))),
+  '42501', 'nor fail one');
+
+-- The service role is what the Edge Functions use, and it does reach them:
+-- a missing row rather than a refusal.
+select is(
+  tests.error_as_service(
+    format('select public.attach_multipart(%L, ''r2-mpu-x'')', gen_random_uuid())),
+  'P0002', 'the service role reaches attach_multipart');
+
+select is(
+  tests.error_as_service(
+    format('select public.complete_upload(%L, 1, ''sha256:x'')', gen_random_uuid())),
+  'P0002', 'and complete_upload');
+
+select is(
+  tests.error_as_service(
+    format('select public.fail_upload(%L, ''gone'')', gen_random_uuid())),
+  'P0002', 'and fail_upload');
+
 select * from finish();
 rollback;
