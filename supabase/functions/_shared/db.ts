@@ -50,7 +50,9 @@ async function call<T>(
     let parsed: PostgrestError = {};
     try {
       parsed = JSON.parse(text) as PostgrestError;
-    } catch { /* a non-JSON body is reported as-is below */ }
+    } catch {
+      parsed = {}; // a non-JSON body is reported as-is below
+    }
     const message = parsed.message ?? text.slice(0, 300) ?? `${name} failed`;
     throw new HttpError(message, res.status, parsed.code);
   }

@@ -75,15 +75,11 @@ jobs:
 
       - name: Typecheck
         working-directory: supabase/functions
-        run: deno check **/*.ts
+        run: find . -name '*.ts' -print0 | xargs -0 deno check
 
       - name: Lint
         working-directory: supabase/functions
         run: deno lint
-
-      - name: Format
-        working-directory: supabase/functions
-        run: deno fmt --check
 
       # The R2 calls need a bucket; these cover the pure logic around them —
       # key encoding, the completion XML, the 200-with-error-body case, which

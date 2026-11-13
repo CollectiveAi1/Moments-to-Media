@@ -40,11 +40,11 @@ Deno.serve(async (req) => {
 
     // The caller's own token: upload_resume_plan refuses an upload that is
     // not theirs (or their event, if they are the producer).
-    const plan = await asCaller(env, authorization)<ResumePlan>("upload_resume_plan", {
-      p_upload: uploadId,
-    });
+    const caller = asCaller(env, authorization);
+    const plan = await caller<ResumePlan>("upload_resume_plan", { p_upload: uploadId });
 
-    if (plan.status !== "in_progress" || !plan.multipart_upload_id) {
+    const multipartUploadId = plan.multipart_upload_id;
+    if (plan.status !== "in_progress" || !multipartUploadId) {
       throw new HttpError(`upload is ${plan.status}, so there is nothing to sign`, 409);
     }
 
@@ -53,11 +53,7 @@ Deno.serve(async (req) => {
       parts.map(async (part) => ({
         part_number: part.part_number,
         bytes: part.bytes,
-        url: await r2.presignPart(
-          plan.storage_key,
-          plan.multipart_upload_id!,
-          part.part_number,
-        ),
+        url: await r2.presignPart(plan.storage_key, multipartUploadId, part.part_number),
       })),
     );
 

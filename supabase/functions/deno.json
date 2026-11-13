@@ -10,7 +10,7 @@
     "singleQuote": false
   },
   "tasks": {
-    "check": "deno check **/*.ts",
+    "check": "find . -name '*.ts' -print0 | xargs -0 deno check",
     "test": "deno test --allow-env"
   }
 }

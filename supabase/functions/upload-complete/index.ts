@@ -33,9 +33,8 @@ Deno.serve(async (req) => {
     const service = asService(env);
     const r2 = new R2(env);
 
-    const plan = await asCaller(env, authorization)<ResumePlan>("upload_resume_plan", {
-      p_upload: uploadId,
-    });
+    const caller = asCaller(env, authorization);
+    const plan = await caller<ResumePlan>("upload_resume_plan", { p_upload: uploadId });
 
     // Already done. The completion call can arrive twice — a client retry, a
     // flaky network — and the second one is not an error (CLAUDE.md rule 8).
@@ -43,7 +42,8 @@ Deno.serve(async (req) => {
       return json({ upload_id: plan.upload_id, status: "completed", already: true });
     }
 
-    if (plan.status !== "in_progress" || !plan.multipart_upload_id) {
+    const multipartUploadId = plan.multipart_upload_id;
+    if (plan.status !== "in_progress" || !multipartUploadId) {
       throw new HttpError(`upload is ${plan.status}, so it cannot be completed`, 409);
     }
 
@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
     // ---- assemble, then read back what was actually stored
     const completed = await r2.completeMultipartUpload(
       plan.storage_key,
-      plan.multipart_upload_id,
+      multipartUploadId,
       plan.landed,
     );
     const head = await r2.headObject(plan.storage_key);
