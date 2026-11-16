@@ -18,3 +18,4 @@ supabase/.env
 # OS / editor
 .DS_Store
 *.log
+next-env.d.ts
