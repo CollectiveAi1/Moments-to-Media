@@ -4,6 +4,7 @@ Internal operations app for Moments to Media's freelance crews. Contractors see 
 
 - Spec (source of truth): `docs/PRD.md` (exported from the PRD doc; https://claude.ai/artifact/7nPDtHiPf68SCJHmsg9jjZ)
 - Approved prototype: https://claude.ai/artifact/WuahTAdhBnHJVaWKPg1wau
+- UI build spec: `docs/ui/UI-SPEC.md`, with the 11 approved screens in `docs/ui/prototype/` and logos in `assets/brand/`. Read `docs/ui/NOTES.md` first: it lists where the spec and the PRD disagree.
 - Owner: Moments to Media owns this code and every account it runs on. Never create infrastructure under anyone else's account.
 
 ## Locked decisions

@@ -9,3 +9,5 @@ When it is scaffolded:
 - A custom Expo native module for background multipart uploads to R2
   (PRD "Footage pipeline → How an upload works")
 - Only `EXPO_PUBLIC_*` values in the bundle — no server keys (CLAUDE.md rule 4)
+
+The screens are specified in `docs/ui/UI-SPEC.md` (section 4), with shared components in section 3.

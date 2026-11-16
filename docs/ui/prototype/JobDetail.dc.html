@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Open call: Lead video</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&amp;family=Montserrat:wght@500;600&amp;family=Lato:wght@300;400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F7F4EF}
+a{color:#7A7059}a:hover{color:#5C5443}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 900px; overflow: hidden; background: #F7F4EF; color: #1F1F1F; font-family: Lato, system-ui, sans-serif; box-sizing: border-box">
+  <div style="padding: 16px 20px 160px; display: flex; flex-direction: column; gap: 20px">
+    <a href="JobBoard.dc.html" style="display: flex; align-items: center; gap: 6px; height: 44px; color: #3F3B35; text-decoration: none; font-family: Montserrat, sans-serif; font-size: 14px; font-weight: 500"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>Open calls</a>
+    <header style="display: flex; flex-direction: column; gap: 6px">
+      <span style="margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; font-family: Montserrat, sans-serif; color: #7A7059">Lead video · 1 of 3 crew</span>
+      <h1 style="margin: 0; font-family: 'Cinzel', serif; font-size: 28px; font-weight: 600; line-height: 1.15">Ohio Valley Tech Summit</h1>
+    </header>
+    <dl style="margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+      <div style="background: #FFFDF9; border: 1px solid #D9D2C7; border-radius: 14px; border-radius: 12px; padding: 12px"><dt style="font-family: Montserrat, sans-serif; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #6B655A">Date</dt><dd style="margin: 4px 0 0; font-size: 15px; font-weight: 700">Tue Nov 17</dd></div>
+      <div style="background: #FFFDF9; border: 1px solid #D9D2C7; border-radius: 14px; border-radius: 12px; padding: 12px"><dt style="font-family: Montserrat, sans-serif; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #6B655A">Hours</dt><dd style="margin: 4px 0 0; font-size: 15px; font-weight: 700">7:30 AM–4:00 PM</dd></div>
+      <div style="background: #FFFDF9; border: 1px solid #D9D2C7; border-radius: 14px; border-radius: 12px; padding: 12px"><dt style="font-family: Montserrat, sans-serif; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #6B655A">Area</dt><dd style="margin: 4px 0 0; font-size: 15px; font-weight: 700">Downtown · 6 mi</dd></div>
+      <div style="background: #FFFDF9; border: 1px solid #D9D2C7; border-radius: 14px; border-radius: 12px; padding: 12px"><dt style="font-family: Montserrat, sans-serif; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #6B655A">Rate</dt><dd style="margin: 4px 0 0; font-size: 15px; font-weight: 700">$650 flat</dd></div>
+    </dl>
+    <section style="display: flex; flex-direction: column; gap: 4px">
+      <h2 style="margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; font-family: Montserrat, sans-serif; color: #6B655A">Gear needed</h2>
+      <div style="display: flex; justify-content: space-between; gap: 12px; font-size: 15px; padding: 11px 0; border-bottom: 1px solid #E6E0D6"><span>Cinema camera</span><span style="color: #5B6A4A; text-align: right">You have: FX6</span></div>
+      <div style="display: flex; justify-content: space-between; gap: 12px; font-size: 15px; padding: 11px 0; border-bottom: 1px solid #E6E0D6"><span>Wireless lav kit, 2 channels</span><span style="color: #5B6A4A; text-align: right">You have it</span></div>
+      <div style="display: flex; justify-content: space-between; gap: 12px; font-size: 15px; padding: 11px 0; border-bottom: 1px solid #E6E0D6"><span>Tripod and slider</span><span style="color: #5B6A4A; text-align: right">You have it</span></div>
+    </section>
+    <section style="background: #EFEAE2; border-radius: 12px; padding: 14px; display: flex; gap: 12px; align-items: flex-start">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B655A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 2px"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+      <p style="margin: 0; font-size: 14px; line-height: 1.45; color: #3F3B35">Exact address, client contact, creative brief and shot list unlock when you're confirmed.</p>
+    </section>
+    <sc-if value="{{ open }}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <label for="note" style="font-size: 14px; font-weight: 700; color: #3F3B35">Note to the producer (optional)</label>
+        <textarea id="note" placeholder="e.g. Can arrive at 6:45 for setup" style="min-height: 84px; border-radius: 12px; border: 1px solid #D9D2C7; background: #FFFDF9; color: #1F1F1F; padding: 12px; font: 15px Lato, sans-serif; resize: none"></textarea>
+      </div>
+    </sc-if>
+  </div>
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 16px 20px 28px; background: #F7F4EF; border-top: 1px solid #D9D2C7; display: flex; flex-direction: column; gap: 10px">
+    <sc-if value="{{ open }}" hint-placeholder-val="{{ true }}">
+      <button type="button" onClick="{{ interested }}" style="height: 52px; border-radius: 14px; border: 0; background: #1F1F1F; color: #FFFDF9; font: 600 15px Montserrat, sans-serif; cursor: pointer">I'm interested</button>
+      <span style="font-size: 12px; color: #6B655A; text-align: center">Interest closes Fri Nov 13 at 12:00 PM</span>
+    </sc-if>
+    <sc-if value="{{ sent }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; gap: 10px; align-items: center; font-size: 15px; font-weight: 700"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5B6A4A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>Interest sent</div>
+      <span style="font-size: 13px; color: #6B655A">You'll hear whether you're selected by Fri Nov 13. Nothing is booked until you confirm.</span>
+      <button type="button" onClick="{{ withdraw }}" style="height: 44px; border-radius: 12px; border: 1px solid #D9D2C7; background: transparent; color: #1F1F1F; font: 600 14px Montserrat, sans-serif; cursor: pointer">Withdraw interest</button>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { sent: false };
+  }
+  renderVals() {
+    return {
+      open: !this.state.sent,
+      sent: this.state.sent,
+      interested: () => this.setState({ sent: true }),
+      withdraw: () => this.setState({ sent: false })
+    };
+  }
+}
+</script>
+</body>
+</html>

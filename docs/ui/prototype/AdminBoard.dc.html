@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin: operations board</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&amp;family=Montserrat:wght@500;600&amp;family=Lato:wght@300;400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F7F4EF}
+a{color:#7A7059}a:hover{color:#5C5443}
+</style>
+</helmet>
+<div style="min-height: 960px; background: #F7F4EF; color: #1F1F1F; font-family: Lato, system-ui, sans-serif; display: flex; flex-wrap: wrap">
+  <nav aria-label="Admin" style="flex: 1 1 220px; max-width: 100%; background: #FFFDF9; color: #1F1F1F; border-right: 1px solid #D9D2C7; padding: 24px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px">
+    <img src="/_blob/c3fb2259e13528f512b3b3e24360aaad" alt="Moments to Media Content Co." style="width: 176px; height: auto; display: block; margin: 0 8px 24px">
+    <a href="AdminBoard.dc.html" style="padding: 10px 12px; border-radius: 8px; background: #EFEAE2; color: #1F1F1F; text-decoration: none; font-size: 14px; font-weight: 600">Board</a>
+    <a href="AdminStaffing.dc.html" style="padding: 10px 12px; border-radius: 8px; color: #6B655A; text-decoration: none; font-size: 14px; font-weight: 500">Staffing</a>
+    <a href="#contractors" style="padding: 10px 12px; border-radius: 8px; color: #6B655A; text-decoration: none; font-size: 14px; font-weight: 500">Contractors</a>
+    <a href="AdminReview.dc.html" style="padding: 10px 12px; border-radius: 8px; color: #6B655A; text-decoration: none; font-size: 14px; font-weight: 500">Footage and review</a>
+    <a href="#payouts" style="padding: 10px 12px; border-radius: 8px; color: #6B655A; text-decoration: none; font-size: 14px; font-weight: 500">Payouts</a>
+    <a href="#announcements" style="padding: 10px 12px; border-radius: 8px; color: #6B655A; text-decoration: none; font-size: 14px; font-weight: 500">Announcements</a>
+    <a href="#settings" style="padding: 10px 12px; border-radius: 8px; color: #6B655A; text-decoration: none; font-size: 14px; font-weight: 500">Settings</a>
+  </nav>
+
+  <main style="flex: 999 1 560px; min-width: 0; padding: 28px 32px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px">
+    <header style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px">
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <h1 style="margin: 0; font-family: 'Cinzel', serif; font-size: 28px; font-weight: 600">Operations board</h1>
+        <span style="font-size: 14px; color: #6B655A">Thu Nov 12 · 12 active events</span>
+      </div>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap">
+        <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #6B655A">Producer
+          <select style="height: 40px; border-radius: 8px; border: 1px solid #D9D2C7; background: #FFFDF9; padding: 0 10px; font: 14px Montserrat, sans-serif; color: #1F1F1F"><option>Everyone</option><option>Sam Park</option><option>Ari Cole</option></select>
+        </label>
+        <button type="button" style="height: 40px; padding: 0 16px; border-radius: 8px; border: 0; background: #7A7059; color: #FFFFFF; font: 600 14px Montserrat, sans-serif; cursor: pointer">New event</button>
+      </div>
+    </header>
+
+    <section aria-label="Needs attention" style="background: #FFFDF9; border: 1px solid #D9D2C7; border-radius: 12px; padding: 14px 16px; display: flex; gap: 12px 24px; flex-wrap: wrap; align-items: center">
+      <span style="font-size: 14px; font-weight: 600">3 need attention</span>
+      <span style="font-size: 13px; padding: 4px 10px; border-radius: 6px; background: #F6E4E2; color: #8E3B3B">Luis Ortega not checked in · Harbor &amp; Pine, call 5:30 PM</span>
+      <span style="font-size: 13px; padding: 4px 10px; border-radius: 6px; background: #F5E9E4; color: #8A5543">Northline gala selection unconfirmed · due 9 PM</span>
+      <span style="font-size: 13px; padding: 4px 10px; border-radius: 6px; background: #F5E9E4; color: #8A5543">Westside Expo upload overdue · Kim Tran</span>
+    </section>
+
+    <div style="overflow-x: auto; padding-bottom: 8px">
+      <div style="display: grid; grid-template-columns: repeat(6, minmax(220px, 1fr)); gap: 14px; min-width: 1380px">
+        <section aria-label="Draft" style="display: flex; flex-direction: column; gap: 10px">
+          <h2 style="margin: 0; font-size: 13px; font-weight: 600; color: #6B655A; display: flex; justify-content: space-between">Draft<span>1</span></h2>
+          <div style="background: #FFFDF9; border: 1px solid #D9D2C7; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px"><span style="font-size: 14px; font-weight: 600">Lakeside Clinic open house</span><span style="font-size: 12px; color: #6B655A">Thu Dec 10 · 3 slots</span><span style="font-size: 12px; color: #6B655A">Brief missing</span></div>
+        </section>
+
+        <section aria-label="Staffing" style="display: flex; flex-direction: column; gap: 10px">
+          <h2 style="margin: 0; font-size: 13px; font-weight: 600; color: #6B655A; display: flex; justify-content: space-between">Staffing<span>4</span></h2>
+          <a href="AdminStaffing.dc.html" style="background: #FFFDF9; border: 1px solid #7A7059; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px; text-decoration: none; color: #1F1F1F"><span style="font-size: 14px; font-weight: 600">Ohio Valley Tech Summit</span><span style="font-size: 12px; color: #6B655A">Tue Nov 17 · 1 of 3 confirmed</span><span style="font-size: 12px; color: #7A7059; font-weight: 600">4 interested in Lead video · review</span></a>
+          <div style="background: #FFFDF9; border: 1px solid #D9D2C7; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px"><span style="font-size: 14px; font-weight: 600">Northline Bank gala</span><span style="font-size: 12px; color: #6B655A">Sat Nov 21 · 2 of 3 confirmed</span><span style="font-size: 12px; color: #8A5543">Jordan Lee selected · confirm due 9 PM</span></div>
+          <div style="background: #FFFDF9; border: 1px solid #D9D2C7; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px"><span style="font-size: 14px; font-weight: 600">Crane &amp; Co. holiday party</span><span style="font-size: 12px; color: #6B655A">Fri Dec 4 · 0 of 2 confirmed</span><span style="font-size: 12px; color: #6B655A">Open call · 2 interested</span></div>
+          <div style="background: #FFFDF9; border: 1px solid #D9D2C7; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px"><span style="font-size: 14px; font-weight: 600">Riverside ribbon cutting</span><span style="font-size: 12px; color: #6B655A">Sat Dec 5 · 0 of 1 confirmed</span><span style="font-size: 12px; color: #6B655A">Open call · drone</span></div>
+        </section>
+
+        <section aria-label="Staffed" style="display: flex; flex-direction: column; gap: 10px">
+          <h2 style="margin: 0; font-size: 13px; font-weight: 600; color: #6B655A; display: flex; justify-content: space-between">Staffed<span>2</span></h2>
+          <div style="background: #FFFDF9; border: 1px solid #D9D2C7; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px"><span style="font-size: 14px; font-weight: 600">Mercer Foundation luncheon</span><span style="font-size: 12px; color: #6B655A">Thu Nov 19 · 2 of 2 confirmed</span></div>
+          <div style="background: #FFFDF9; border: 1px solid #D9D2C7; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px"><span style="font-size: 14px; font-weight: 600">Westbrook HS senior night</span><span style="font-size: 12px; color: #6B655A">Fri Nov 27 · 3 of 3 confirmed</span></div>
+        </section>
+
+        <section aria-label="In progress" style="display: flex; flex-direction: column; gap: 10px">
+          <h2 style="margin: 0; font-size: 13px; font-weight: 600; color: #6B655A; display: flex; justify-content: space-between">In progress<span>1</span></h2>
+          <div style="background: #FFFDF9; border: 1px solid #D9D2C7; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px"><span style="font-size: 14px; font-weight: 600">Harbor &amp; Pine launch</span><span style="font-size: 12px; color: #6B655A">Tonight · 2 of 3 checked in</span><span style="font-size: 12px; color: #6B655A">Shot list 4 of 10</span></div>
+        </section>
+
+        <section aria-label="Uploaded" style="display: flex; flex-direction: column; gap: 10px">
+          <h2 style="margin: 0; font-size: 13px; font-weight: 600; color: #6B655A; display: flex; justify-content: space-between">Uploaded<span>2</span></h2>
+          <a href="AdminReview.dc.html" style="background: #FFFDF9; border: 1px solid #7A7059; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px; text-decoration: none; color: #1F1F1F"><span style="font-size: 14px; font-weight: 600">Riverside 10K</span><span style="font-size: 12px; color: #6B655A">Sun Nov 8 · 2 of 2 uploaded</span><span style="font-size: 12px; color: #7A7059; font-weight: 600">Photo ready for review</span></a>
+          <div style="background: #FFFDF9; border: 1px solid #D9D2C7; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px"><span style="font-size: 14px; font-weight: 600">Westside Expo</span><span style="font-size: 12px; color: #6B655A">Wed Nov 11 · 1 of 3 uploaded</span><span style="font-size: 12px; color: #8A5543">1 overdue</span></div>
+        </section>
+
+        <section aria-label="Complete" style="display: flex; flex-direction: column; gap: 10px">
+          <h2 style="margin: 0; font-size: 13px; font-weight: 600; color: #6B655A; display: flex; justify-content: space-between">Complete<span>2</span></h2>
+          <div style="background: #FFFDF9; border: 1px solid #D9D2C7; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px"><span style="font-size: 14px; font-weight: 600">Short North gallery hop</span><span style="font-size: 12px; color: #6B655A">Thu Nov 5 · paid</span></div>
+          <div style="background: #FFFDF9; border: 1px solid #D9D2C7; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px"><span style="font-size: 14px; font-weight: 600">Grandview 5K</span><span style="font-size: 12px; color: #6B655A">Sun Nov 1 · paid</span></div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

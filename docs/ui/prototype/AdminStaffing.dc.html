@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin: staffing Ohio Valley Tech Summit</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&amp;family=Montserrat:wght@500;600&amp;family=Lato:wght@300;400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F7F4EF}
+a{color:#7A7059}a:hover{color:#5C5443}
+</style>
+</helmet>
+<div style="min-height: 960px; background: #F7F4EF; color: #1F1F1F; font-family: Lato, system-ui, sans-serif; display: flex; flex-wrap: wrap">
+  <nav aria-label="Admin" style="flex: 1 1 220px; max-width: 100%; background: #FFFDF9; color: #1F1F1F; border-right: 1px solid #D9D2C7; padding: 24px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px">
+    <img src="/_blob/c3fb2259e13528f512b3b3e24360aaad" alt="Moments to Media Content Co." style="width: 176px; height: auto; display: block; margin: 0 8px 24px">
+    <a href="AdminBoard.dc.html" style="padding: 10px 12px; border-radius: 8px; color: #6B655A; text-decoration: none; font-size: 14px; font-weight: 500">Board</a>
+    <a href="AdminStaffing.dc.html" style="padding: 10px 12px; border-radius: 8px; background: #EFEAE2; color: #1F1F1F; text-decoration: none; font-size: 14px; font-weight: 600">Staffing</a>
+    <a href="#contractors" style="padding: 10px 12px; border-radius: 8px; color: #6B655A; text-decoration: none; font-size: 14px; font-weight: 500">Contractors</a>
+    <a href="AdminReview.dc.html" style="padding: 10px 12px; border-radius: 8px; color: #6B655A; text-decoration: none; font-size: 14px; font-weight: 500">Footage and review</a>
+    <a href="#payouts" style="padding: 10px 12px; border-radius: 8px; color: #6B655A; text-decoration: none; font-size: 14px; font-weight: 500">Payouts</a>
+    <a href="#announcements" style="padding: 10px 12px; border-radius: 8px; color: #6B655A; text-decoration: none; font-size: 14px; font-weight: 500">Announcements</a>
+    <a href="#settings" style="padding: 10px 12px; border-radius: 8px; color: #6B655A; text-decoration: none; font-size: 14px; font-weight: 500">Settings</a>
+  </nav>
+
+  <main style="flex: 999 1 560px; min-width: 0; padding: 28px 32px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px">
+    <a href="AdminBoard.dc.html" style="font-size: 14px; text-decoration: none">Back to board</a>
+    <header style="display: flex; flex-direction: column; gap: 4px">
+      <h1 style="margin: 0; font-family: 'Cinzel', serif; font-size: 28px; font-weight: 600">Ohio Valley Tech Summit</h1>
+      <span style="font-size: 14px; color: #6B655A">Tue Nov 17 · 7:30 AM–4:00 PM · Convention center, Hall B · Producer: Sam Park</span>
+    </header>
+
+    <section aria-label="Slots" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px">
+      <div style="background: #FFFDF9; border: 2px solid #7A7059; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 15px; font-weight: 600">Lead video · $650 flat</span><span style="font-size: 13px; color: #6B655A">Open call · closes Fri 12 PM</span><span style="font-size: 13px; font-weight: 600; color: {{ slotColor }}">{{ slotStatus }}</span></div>
+      <div style="background: #FFFDF9; border: 1px solid #D9D2C7; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 15px; font-weight: 600">Photo · $90/hr</span><span style="font-size: 13px; color: #6B655A">Direct invite</span><span style="font-size: 13px; font-weight: 600; color: #5B6A4A">Confirmed: Maya Chen</span></div>
+      <div style="background: #FFFDF9; border: 1px solid #D9D2C7; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 15px; font-weight: 600">Audio · $400 flat</span><span style="font-size: 13px; color: #6B655A">Direct invite</span><span style="font-size: 13px; font-weight: 600; color: #8A5543">Invited: Priya Nair · expires in 14h</span></div>
+    </section>
+
+    <sc-if value="{{ hasPick }}" hint-placeholder-val="{{ false }}">
+      <div role="status" style="background: #EEF0E9; border: 1px solid #C9CEBF; border-radius: 12px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap">
+        <span style="font-size: 14px; color: #3F4A33">{{ pickLine }}</span>
+        <button type="button" onClick="{{ undo }}" style="height: 36px; padding: 0 14px; border-radius: 8px; border: 1px solid #C9CEBF; background: #FFFDF9; color: #3F4A33; font: 600 13px Montserrat, sans-serif; cursor: pointer">Undo</button>
+      </div>
+    </sc-if>
+
+    <section aria-label="Interested in Lead video" style="background: #FFFDF9; border: 1px solid #D9D2C7; border-radius: 12px; overflow: hidden">
+      <div style="padding: 14px 16px; border-bottom: 1px solid #D9D2C7; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px">
+        <h2 style="margin: 0; font-size: 16px; font-weight: 600">4 interested in Lead video</h2>
+        <span style="font-size: 13px; color: #6B655A">Ranked by distance, gear, availability, reliability and history with this client</span>
+      </div>
+      <div style="overflow-x: auto">
+        <div style="min-width: 860px">
+          <div style="display: grid; grid-template-columns: 2fr 0.7fr 0.8fr 0.8fr 0.9fr 2.2fr 1fr; gap: 12px; padding: 10px 16px; font-size: 12px; font-weight: 600; color: #6B655A; border-bottom: 1px solid #D9D2C7">
+            <span>Contractor</span><span>Match</span><span>Distance</span><span>Gear</span><span>Reliability</span><span>Note and flags</span><span></span>
+          </div>
+          <sc-for list="{{ people }}" as="p" hint-placeholder-count="4">
+            <div style="display: grid; grid-template-columns: 2fr 0.7fr 0.8fr 0.8fr 0.9fr 2.2fr 1fr; gap: 12px; padding: 14px 16px; align-items: center; border-bottom: 1px solid #ECE6DC; font-size: 14px">
+              <span style="display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 600">{{ p.name }}</span><span style="font-size: 12px; color: #6B655A">{{ p.history }}</span></span>
+              <span style="font-family: 'Cinzel', serif; font-size: 18px; font-weight: 600">{{ p.score }}</span>
+              <span>{{ p.distance }}</span>
+              <span>{{ p.gear }}</span>
+              <span>{{ p.rating }}</span>
+              <span style="font-size: 13px; color: {{ p.noteColor }}">{{ p.note }}</span>
+              <button type="button" onClick="{{ p.pick }}" style="{{ p.btnStyle }}">{{ p.btnLabel }}</button>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { picked: null };
+  }
+  renderVals() {
+    const list = [
+      { id: 'jordan', name: 'Jordan Lee', history: 'Worked with this client 3 times', score: '94', distance: '6 mi', gear: '3 of 3', rating: '4.9', note: 'Can arrive at 6:45 for setup', warn: false },
+      { id: 'andre', name: 'Andre Wallace', history: 'New to this client', score: '88', distance: '9 mi', gear: '3 of 3', rating: '4.8', note: 'No note', warn: false },
+      { id: 'kim', name: 'Kim Tran', history: 'Worked with this client once', score: '81', distance: '12 mi', gear: '3 of 3', rating: '4.6', note: 'Upload overdue on Westside Expo', warn: true },
+      { id: 'theo', name: 'Theo Brooks', history: 'New to this client', score: '72', distance: '22 mi', gear: '2 of 3', rating: '4.7', note: 'No wireless lav kit', warn: true }
+    ];
+    const picked = this.state.picked;
+    const chosen = list.find((p) => p.id === picked);
+    const btn = 'height: 36px; padding: 0 14px; border-radius: 8px; font: 600 13px Montserrat, sans-serif; cursor: pointer; ';
+    return {
+      hasPick: !!chosen,
+      pickLine: chosen ? chosen.name + ' selected. Confirm request sent, due in 12 hours. The other 3 hear the slot is filled once ' + chosen.name.split(' ')[0] + ' confirms.' : '',
+      slotStatus: chosen ? 'Selected: ' + chosen.name + ' · awaiting confirm' : '4 interested · pick one',
+      slotColor: chosen ? '#8A5543' : '#7A7059',
+      undo: () => this.setState({ picked: null }),
+      people: list.map((p) => {
+        const isPicked = p.id === picked;
+        return {
+          name: p.name, history: p.history, score: p.score, distance: p.distance, gear: p.gear, rating: p.rating, note: p.note,
+          noteColor: p.warn ? '#8E3B3B' : '#6B655A',
+          btnLabel: isPicked ? 'Selected' : 'Select',
+          btnStyle: btn + (isPicked ? 'border: 0; background: #5B6A4A; color: #FFFFFF' : chosen ? 'border: 1px solid #D9D2C7; background: #FFFDF9; color: #6B655A' : 'border: 0; background: #7A7059; color: #FFFFFF'),
+          pick: () => this.setState({ picked: isPicked ? null : p.id })
+        };
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>
