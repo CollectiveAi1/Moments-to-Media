@@ -581,3 +581,14 @@ Three further things this turned up, all now true:
   `crc64nvme("123456789") == 0xae8b14860a799888` before use. The first attempt
   pasted the polynomial in its normal form instead of reflecting it and produced
   a plausible wrong answer; the vector caught it.
+
+## footage-download, and a bundle that differs from the repository
+
+`supabase/functions/footage-download` signs a short-lived GET for one finished
+upload, after reading the upload row with the caller's own token, so RLS is
+the whole permission check. It was deployed through the Supabase connection
+with a trimmed `_shared/r2.ts` containing only the download path, rather than
+the full client, to keep the hand-transcribed bundle small. The method is the
+same `presignGet` as in the repository's `_shared/r2.ts`. The first CI deploy
+job will replace it with the repository's own bundle; until then the deployed
+function is that trimmed copy.

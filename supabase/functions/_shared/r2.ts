@@ -238,6 +238,23 @@ export class R2 {
     };
   }
 
+  /**
+   * A short-lived URL to download one finished object, straight from R2 —
+   * footage never passes through our servers in either direction (rule 7).
+   * The filename is the one the contractor uploaded, so the download is named
+   * sensibly rather than after the storage key.
+   */
+  async presignGet(key: string, filename: string, expiresIn = DEFAULT_PRESIGN_SECONDS): Promise<string> {
+    const url = this.objectUrl(key);
+    url.searchParams.set("X-Amz-Expires", String(expiresIn));
+    const safe = filename.replace(/["\\\r\n]/g, "").slice(0, 200) || "footage";
+    url.searchParams.set("response-content-disposition", `attachment; filename="${safe}"`);
+    const signed = await this.#client.sign(new Request(url.toString(), { method: "GET" }), {
+      aws: { signQuery: true },
+    });
+    return signed.url;
+  }
+
   /** Stops the parts being billed once an upload is abandoned or failed. */
   async abortMultipartUpload(key: string, uploadId: string): Promise<void> {
     const url = this.objectUrl(key);
