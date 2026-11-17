@@ -9,7 +9,7 @@ import { PORTALS, type Portal } from '@/lib/portals';
 import { createClient } from '@/lib/supabase/server';
 import { card, color, fonts, radius } from '@/lib/ui';
 
-export const metadata: Metadata = { title: 'Sign in', description: 'Sign in to Moments to Media: the admin console, the crew app, or your client portal.' };
+export const metadata: Metadata = { title: { absolute: 'Moments to Media · Event photo and video, booked and delivered online' }, description: 'Book event photo and video with Moments to Media: check availability, sign and pay online, and download your media. Clients, crew and the studio sign in here.' };
 export const dynamic = 'force-dynamic';
 
 /**

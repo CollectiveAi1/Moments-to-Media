@@ -4,12 +4,12 @@ import { supabaseAnonKey, supabaseUrl } from './lib/env';
 import { portalForPath } from './lib/portals';
 import { AUTH_COOKIE_OPTIONS } from './lib/supabase/cookies';
 
-// The inquiry form and proposal links are opened by people with no account.
-// They reach the database only through functions made for them (see
-// supabase/migrations/20261118000100_client_side.sql).
-// Sign-in, sign-up and password pages are open too, and so is "/", which is
-// the portal chooser when signed out.
-const PUBLIC_PATHS = ['/sign-in', '/auth/', '/inquire/', '/p/', '/login/', '/signup/', '/forgot', '/account/password', '/privacy', '/robots.txt', '/sitemap.xml', '/manifest.webmanifest', '/opengraph-image', '/twitter-image', '/apple-icon', '/icon'];
+// The signed-in areas. A signed-out visitor to one of these is sent to that
+// portal's sign-in. Everything else (sign-in and sign-up, the inquiry form,
+// proposal links, the privacy page, robots, sitemap, icons, and addresses
+// that do not exist, which get the 404 page) renders without a session.
+// This is a convenience: each page and every query checks access itself.
+const PRIVATE_PREFIXES = ['/board', '/events', '/staffing', '/contractors', '/footage', '/payouts', '/leads', '/proposals', '/invoices', '/clients', '/packages', '/announcements', '/settings', '/app', '/portal', '/pending', '/account', '/download', '/no-access'];
 
 /**
  * Runs before every page. Two jobs: keep the session cookie fresh, and send
@@ -37,7 +37,7 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
-  const isPublic = pathname === '/' || PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p));
+  const isPublic = pathname === '/account/password' || !PRIVATE_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
   if (!user && !isPublic) {
     const url = request.nextUrl.clone();
