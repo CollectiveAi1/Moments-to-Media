@@ -53,7 +53,7 @@ export default async function Uploads() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {mine.map((u) => (
                   <div key={String(u.id)} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, fontSize: 13 }}>
-                    <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(u.filename)}</span>
+                    <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', overflowWrap: 'anywhere' }}>{String(u.filename)}</span>
                     <span style={{ flex: '0 0 auto', display: 'flex', gap: 8 }}>
                       <Muted size={13}>{bytes(Number(u.bytes))}</Muted>
                       <StatusText tone={u.status === 'completed' ? 'positive' : u.status === 'failed' || u.status === 'aborted' ? 'warn' : 'muted'}>

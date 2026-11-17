@@ -89,7 +89,7 @@ export default async function PortalMedia() {
                         {typeOf(f.filename) === 'Video' ? 'VID' : typeOf(f.filename) === 'Photo' ? 'IMG' : 'FILE'}
                       </span>
                       <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        <span style={{ fontSize: 15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.filename}</span>
+                        <span style={{ fontSize: 15, overflowWrap: 'anywhere' }}>{f.filename}</span>
                         <span style={{ fontSize: 13, color: color.textMuted }}>{typeOf(f.filename)} · {bytes(f.bytes)}</span>
                       </span>
                       <a

@@ -46,7 +46,7 @@ export default async function PortalProject({ params }: { params: Promise<{ even
               {files.map((f) => (
                 <div key={f.id} style={{ display: 'flex', alignItems: 'center', gap: 10, borderBottom: `1px solid ${color.divider}`, padding: '8px 0' }}>
                   <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.filename}</span>
+                    <span style={{ fontSize: 14, overflowWrap: 'anywhere' }}>{f.filename}</span>
                     <Muted size={12}>{bytes(f.bytes)}{f.kind === 'deliverables' ? ' · final' : f.kind === 'selects' ? ' · selects' : ''}</Muted>
                   </span>
                   <a href={`/download/${f.id}`} style={{ minHeight: 40, padding: '0 14px', display: 'flex', alignItems: 'center', borderRadius: 8, background: color.primary, color: color.onPrimary, textDecoration: 'none', fontWeight: 600, fontSize: 13 }}>
