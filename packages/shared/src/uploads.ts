@@ -206,3 +206,50 @@ export function isUsableFilename(filename: string): boolean {
     !filename.startsWith('.')
   );
 }
+
+// ------------------------------------------------- CRC-64/NVME, fast path
+//
+// The BigInt implementation above is the readable reference. It allocates a
+// BigInt per byte, which is fine for a part held in memory and far too slow
+// for a browser hashing a video. This is the same algorithm on the register
+// split into two 32-bit halves with plain numbers, checked against the
+// reference and the published vector in uploads.test.ts.
+
+const FAST_LO = new Uint32Array(256);
+const FAST_HI = new Uint32Array(256);
+for (let i = 0; i < 256; i++) {
+  const entry = CRC64_TABLE[i] as bigint;
+  FAST_LO[i] = Number(entry & 0xffffffffn);
+  FAST_HI[i] = Number(entry >> 32n);
+}
+
+/** A running CRC-64/NVME register, as two unsigned 32-bit halves. */
+export interface Crc64State {
+  hi: number;
+  lo: number;
+}
+
+export const crc64Start = (): Crc64State => ({ hi: 0xffffffff, lo: 0xffffffff });
+
+/** Folds bytes into the register, in place. */
+export function crc64Update(state: Crc64State, chunk: Uint8Array): Crc64State {
+  let hi = state.hi;
+  let lo = state.lo;
+  for (let i = 0; i < chunk.length; i++) {
+    const index = (lo ^ (chunk[i] as number)) & 0xff;
+    const nextLo = ((lo >>> 8) | ((hi & 0xff) << 24)) >>> 0;
+    const nextHi = hi >>> 8;
+    lo = (nextLo ^ (FAST_LO[index] as number)) >>> 0;
+    hi = (nextHi ^ (FAST_HI[index] as number)) >>> 0;
+  }
+  state.hi = hi;
+  state.lo = lo;
+  return state;
+}
+
+/** Finalises the register into the base64 form R2 expects. */
+export function crc64Base64(state: Crc64State): string {
+  const hi = (state.hi ^ 0xffffffff) >>> 0;
+  const lo = (state.lo ^ 0xffffffff) >>> 0;
+  return crc64nvmeToBase64((BigInt(hi) << 32n) | BigInt(lo));
+}
