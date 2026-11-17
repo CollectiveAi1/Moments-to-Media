@@ -2,7 +2,10 @@ import type { Metadata } from 'next';
 import { Cinzel, Lato, Montserrat } from 'next/font/google';
 import { cookies } from 'next/headers';
 import type { ReactNode } from 'react';
+import { DemoBanner } from '@/components/auth/DemoBanner';
 import { FlashNotice } from '@/components/FlashNotice';
+import { DEMO_ACCOUNTS, demoEnabled } from '@/lib/demo';
+import { createClient } from '@/lib/supabase/server';
 import { color, fonts } from '@/lib/ui';
 
 // UI-SPEC "Fonts": Cinzel 600, Montserrat 500/600, Lato 400/700.
@@ -36,12 +39,18 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   } catch {
     flash = null;
   }
+  let demoWho: string | null = null;
+  if (demoEnabled()) {
+    const { data: { user } } = await (await createClient()).auth.getUser();
+    demoWho = Object.values(DEMO_ACCOUNTS).find((a) => a.email === (user?.email ?? '').toLowerCase())?.who ?? null;
+  }
   return (
     <html lang="en" className={`${heading.variable} ${label.variable} ${body.variable}`}>
       <head>
         <style dangerouslySetInnerHTML={{ __html: base }} />
       </head>
       <body>
+        {demoWho ? <DemoBanner who={demoWho} /> : null}
         <FlashNotice message={flash} />
         {children}
       </body>

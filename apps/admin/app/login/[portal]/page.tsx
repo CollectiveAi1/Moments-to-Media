@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { AuthCard } from '@/components/auth/AuthCard';
 import { AuthForm, PasswordField, SmallLink, TextField } from '@/components/auth/AuthForm';
+import { demoEnabled } from '@/lib/demo';
 import { isPortal, PORTALS } from '@/lib/portals';
 import { createClient } from '@/lib/supabase/server';
 import { signIn } from '../../auth-actions';
@@ -24,6 +25,7 @@ export default async function LoginPage({ params }: { params: Promise<{ portal: 
       footer={
         <>
           {p.signup ? <SmallLink href={`/signup/${portal}`}>{portal === 'contractor' ? 'New to the crew? Apply to join' : 'New client? Create an account'}</SmallLink> : null}
+          {demoEnabled() ? <SmallLink href="/#demo">Just looking? Try the demo</SmallLink> : null}
           <SmallLink href="/">Not {portal === 'admin' ? 'an admin' : portal === 'client' ? 'a client' : 'crew'}? Choose another sign-in</SmallLink>
         </>
       }

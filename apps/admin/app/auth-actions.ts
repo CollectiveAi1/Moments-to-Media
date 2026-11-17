@@ -1,6 +1,7 @@
 'use server';
 
 import { redirect } from 'next/navigation';
+import { DEMO_ACCOUNTS, DEMO_REFUSAL, demoEnabled, isDemoEmail } from '@/lib/demo';
 import { isPortal, PORTALS, passwordProblem, type Portal } from '@/lib/portals';
 import { sendPasswordReset, signUpWithPassword } from '@/lib/supabase/mailer';
 import { createClient } from '@/lib/supabase/server';
@@ -119,7 +120,19 @@ export async function setPassword(_p: AuthState, form: FormData): Promise<AuthSt
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { status: 'error', message: 'Your link has expired. Ask for a new one.', email: '' };
+  if (isDemoEmail(user.email)) return { status: 'error', message: DEMO_REFUSAL, email: '' };
   const { error } = await supabase.auth.updateUser({ password, data: { password_set: true } });
   if (error) return { status: 'error', message: /different/i.test(error.message) ? 'Choose a password you have not used here before.' : `Could not save it: ${error.message}`, email: '' };
   redirect('/');
+}
+
+/** Demo mode only: sign in to a portal as its fictional demo account. */
+export async function demoSignIn(form: FormData): Promise<void> {
+  const portal = field(form, 'portal');
+  if (!demoEnabled() || !isPortal(portal)) redirect('/');
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  const { error } = await supabase.auth.signInWithPassword({ email: DEMO_ACCOUNTS[portal].email, password: process.env.DEMO_PASSWORD ?? '' });
+  if (error) redirect(`/?demo=unavailable`);
+  redirect(PORTALS[portal].home);
 }

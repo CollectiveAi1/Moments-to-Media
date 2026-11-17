@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { DemoPanel } from '@/components/auth/DemoPanel';
 import { Wordmark } from '@/components/Wordmark';
+import { demoEnabled } from '@/lib/demo';
 import { getViewer } from '@/lib/context';
 import { PORTALS, type Portal } from '@/lib/portals';
 import { createClient } from '@/lib/supabase/server';
@@ -15,7 +17,7 @@ export const dynamic = 'force-dynamic';
  * belongs to (owners and producers to the board, crew to their app, clients
  * to their portal).
  */
-export default async function Home() {
+export default async function Home({ searchParams }: { searchParams: Promise<{ demo?: string }> }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (user) {
@@ -28,6 +30,7 @@ export default async function Home() {
   }
 
   const order: Portal[] = ['client', 'contractor', 'admin'];
+  const { demo } = await searchParams;
   return (
     <main style={{ minHeight: '100vh', background: color.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
       <div style={{ width: '100%', maxWidth: 980, display: 'flex', flexDirection: 'column', gap: 28, alignItems: 'center' }}>
@@ -52,6 +55,7 @@ export default async function Home() {
             </section>
           ))}
         </div>
+        {demoEnabled() ? <DemoPanel unavailable={demo === 'unavailable'} /> : null}
       </div>
     </main>
   );

@@ -2,6 +2,7 @@
 
 import type { ActionResult } from '@/lib/action-types';
 import { requireAdmin } from '@/lib/context';
+import { DEMO_REFUSAL, isDemoEmail } from '@/lib/demo';
 import { fail, failWith, ok, text } from '@/lib/errors';
 import { settle, succeed } from '@/lib/mutate';
 import { sendSignInLink } from '@/lib/supabase/mailer';
@@ -18,6 +19,7 @@ const UUID = /^[0-9a-f-]{36}$/i;
  */
 export async function inviteMember(_p: ActionResult, form: FormData): Promise<ActionResult> {
   const viewer = await requireAdmin();
+  if (isDemoEmail(viewer.email)) return fail(DEMO_REFUSAL);
   const email = text(form, 'email')?.toLowerCase();
   const role = text(form, 'role') ?? 'contractor';
   if (!email || !EMAIL.test(email)) return fail('Enter a valid email address.');
@@ -54,6 +56,7 @@ export async function resendInvite(_p: ActionResult, form: FormData): Promise<Ac
 
 export async function revokeInvite(_p: ActionResult, form: FormData): Promise<ActionResult> {
   const viewer = await requireAdmin();
+  if (isDemoEmail(viewer.email)) return fail(DEMO_REFUSAL);
   const id = text(form, 'invitation_id');
   if (!id || !UUID.test(id)) return fail('Missing invitation.');
   const { error } = await viewer.supabase.from('org_invitations').update({ status: 'revoked' }).eq('id', id);

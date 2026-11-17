@@ -99,3 +99,22 @@ Sign-in is email and password, with a separate sign-in for each portal:
 - *Confirm email* must stay **on**. If it were off, an account would count as confirmed without anyone opening the email, and client matching by email would not be safe.
 - Turn on *leaked password protection* (the security advisor flags it).
 - *Redirect URLs* must include `https://moments-to-media-admin.vercel.app/auth/callback`; it already does for invitations.
+
+## Demo mode (temporary, for Moments to Media's review)
+
+The sign-in page shows a **Demo mode** panel with one button per portal. Each signs in as a fictional account with sample data:
+
+| Portal | Demo account | What's there |
+| --- | --- | --- |
+| Admin console | Sam Park (producer) | The board's sample events, packages, two inquiries, a signed and a waiting proposal, an invoice with the deposit paid |
+| Crew | Maya Chen (photographer) | Her jobs, schedule and earnings from the board demo |
+| Client portal | Avery Harper (wedding client) | A signed booking, an invoice with the deposit paid and a balance due, the contract, a message from the studio |
+
+- A banner shows on every page while in a demo account, with "Try another portal".
+- Demo accounts cannot send emails (invitations, portal access) or change a password. Everything else works on the demo organization's data. The demo admin is a producer, not an owner, so organization settings and members stay locked.
+- On when Vercel has `DEMO_MODE=on` and `DEMO_PASSWORD`; the password is a Vercel secret and the database holds only its hash.
+
+**To remove it after approval:**
+1. Delete `DEMO_MODE` and `DEMO_PASSWORD` in Vercel and redeploy. The panel and the buttons disappear.
+2. Run `supabase/demo/portal_demo_teardown.sql`. It removes the sample client side and disables the demo logins.
+3. Delete `apps/admin/lib/demo.ts`, `components/auth/DemoPanel.tsx` and `DemoBanner.tsx`, and their callers (`grep -rn demo apps/admin`).

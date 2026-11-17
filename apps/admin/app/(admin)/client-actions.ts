@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation';
 import type { ActionResult } from '@/lib/action-types';
 import { requireAdmin } from '@/lib/context';
+import { DEMO_REFUSAL, isDemoEmail } from '@/lib/demo';
 import { cents, fail, failWith, int, text } from '@/lib/errors';
 import { zonedToUtc } from '@/lib/format';
 import { settle, succeed } from '@/lib/mutate';
@@ -469,6 +470,7 @@ export async function addContact(_p: ActionResult, form: FormData): Promise<Acti
 
 export async function inviteClient(_p: ActionResult, form: FormData): Promise<ActionResult> {
   const viewer = await requireAdmin();
+  if (isDemoEmail(viewer.email)) return fail(DEMO_REFUSAL);
   const clientId = id(form, 'client_id');
   const email = text(form, 'email')?.toLowerCase() ?? null;
   if (!clientId) return fail('That client was not found.');
