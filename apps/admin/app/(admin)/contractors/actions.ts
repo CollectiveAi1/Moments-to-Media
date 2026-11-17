@@ -68,3 +68,13 @@ export async function reviewDocument(_p: ActionResult, form: FormData): Promise<
   const { error } = await viewer.supabase.from('compliance_documents').update({ status }).eq('id', id);
   return settle(error, status === 'approved' ? 'Document approved.' : 'Document rejected. They will see it needs replacing.');
 }
+
+/** Approve or turn down someone who applied through crew sign-up. */
+export async function decideApplicant(_p: ActionResult, form: FormData): Promise<ActionResult> {
+  const viewer = await requireAdmin();
+  const membershipId = text(form, 'membership_id');
+  const approve = text(form, 'decision') === 'approve';
+  if (!membershipId || !UUID.test(membershipId)) return fail('That application was not found.');
+  const { error } = await viewer.supabase.rpc('decide_contractor', { p_membership: membershipId, p_approve: approve });
+  return settle(error, approve ? 'Approved. They can see and take jobs now.' : 'Application turned down.');
+}

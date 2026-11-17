@@ -7,7 +7,7 @@ import { requireAdmin } from '@/lib/context';
 import { dateTime } from '@/lib/format';
 import { orgPeople } from '@/lib/org';
 import { color } from '@/lib/ui';
-import { inviteMember, resendInvite, revokeInvite } from './actions';
+import { decideApplicant, inviteMember, resendInvite, revokeInvite } from './actions';
 
 export const metadata: Metadata = { title: 'Contractors' };
 export const dynamic = 'force-dynamic';
@@ -27,6 +27,8 @@ export default async function ContractorsPage() {
     db.from('org_invitations').select('id, email, role, status, expires_at, created_at').eq('org_id', viewer.org.id).eq('status', 'pending').order('created_at', { ascending: false }),
     db.from('organizations').select('settings').eq('id', viewer.org.id).maybeSingle(),
   ]);
+  const { data: applicantRows } = await db.rpc('pending_contractors', { p_org: viewer.org.id });
+  const applicants = (applicantRows ?? []) as Array<{ membership_id: string; full_name: string; email: string | null; phone: string | null; skills: string[] | null; home_base_label: string | null; applied_at: string }>;
 
   const required: string[] = ((org.data?.settings as { required_compliance_documents?: string[] } | null)?.required_compliance_documents) ?? [];
   const today = new Date().toISOString().slice(0, 10);
@@ -34,6 +36,29 @@ export default async function ContractorsPage() {
   return (
     <>
       <PageHeader title="Contractors" subtitle={`${people.length} on the roster. Invite people, check their documents and see their history.`} />
+
+      {applicants.length ? (
+        <Card highlight>
+          <H2 size={20}>{applicants.length} waiting for approval</H2>
+          <Muted size={13}>They signed up as crew and confirmed their email. Until you approve them they see no jobs or event details.</Muted>
+          {applicants.map((a) => (
+            <Row key={a.membership_id} align="center">
+              <span style={{ flex: '1 1 280px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <strong>{a.full_name}</strong>
+                <Muted size={13}>{[a.email, a.phone, (a.skills ?? []).join(', '), a.home_base_label].filter(Boolean).join(' · ') || 'No profile details yet'}</Muted>
+              </span>
+              <ActionForm action={decideApplicant} submit="Approve" layout="inline">
+                <input type="hidden" name="membership_id" value={a.membership_id} />
+                <input type="hidden" name="decision" value="approve" />
+              </ActionForm>
+              <ActionForm action={decideApplicant} submit="Turn down" variant="secondary" layout="inline" confirm={`Turn down ${a.full_name}?`}>
+                <input type="hidden" name="membership_id" value={a.membership_id} />
+                <input type="hidden" name="decision" value="decline" />
+              </ActionForm>
+            </Row>
+          ))}
+        </Card>
+      ) : null}
 
       <Card>
         <H2 size={20}>Invite someone</H2>

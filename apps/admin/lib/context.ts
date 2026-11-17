@@ -25,6 +25,8 @@ export interface Viewer {
   isContractor: boolean;
   /** Signs in to the client portal for one or more of the org's clients. */
   isClient: boolean;
+  /** Signed up as crew and waiting for an owner or producer to approve them. */
+  pendingContractor: boolean;
 }
 
 export const ORG_COOKIE = 'mtm_org';
@@ -40,17 +42,19 @@ export const getViewer = cache(async (): Promise<Viewer> => {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect('/sign-in');
+  if (!user) redirect('/');
 
-  const [{ data: memberships }, { data: orgRows }, { data: profile }] = await Promise.all([
-    supabase.from('memberships').select('org_id, role').eq('user_id', user.id).eq('status', 'active'),
+  const [{ data: allMemberships }, { data: orgRows }, { data: profile }] = await Promise.all([
+    supabase.from('memberships').select('org_id, role, status').eq('user_id', user.id),
     supabase.from('organization_public').select('id, name'),
     supabase.from('profiles').select('full_name').eq('user_id', user.id).maybeSingle(),
   ]);
 
+  const memberships = (allMemberships ?? []).filter((m) => m.status === 'active');
+  const pendingContractor = (allMemberships ?? []).some((m) => m.role === 'contractor' && m.status === 'pending');
   const names = new Map<string, string>((orgRows ?? []).map((o) => [String(o.id), String(o.name)]));
   const byOrg = new Map<string, Role[]>();
-  for (const m of memberships ?? []) {
+  for (const m of memberships) {
     const list = byOrg.get(String(m.org_id)) ?? [];
     list.push(m.role as Role);
     byOrg.set(String(m.org_id), list);
@@ -76,20 +80,23 @@ export const getViewer = cache(async (): Promise<Viewer> => {
     isAdmin: roles.includes('owner') || roles.includes('producer'),
     isContractor: roles.includes('contractor'),
     isClient: roles.includes('client'),
+    pendingContractor,
   };
 });
 
 /** For admin pages: anyone else is sent where they belong. */
 export async function requireAdmin(): Promise<Viewer & { org: OrgMembership }> {
   const viewer = await getViewer();
-  if (!viewer.org || !viewer.isAdmin) redirect(viewer.isContractor ? '/app' : viewer.isClient ? '/portal' : '/no-access');
+  if (!viewer.org || !viewer.isAdmin) redirect(viewer.isContractor ? '/app' : viewer.isClient ? '/portal' : viewer.pendingContractor ? '/pending' : '/no-access');
   return viewer as Viewer & { org: OrgMembership };
 }
 
 /** For contractor pages. An owner who also works shifts holds both roles. */
 export async function requireContractor(): Promise<Viewer & { org: OrgMembership }> {
   const viewer = await getViewer();
-  if (!viewer.org || !viewer.isContractor) redirect(viewer.isAdmin ? '/board' : viewer.isClient ? '/portal' : '/no-access');
+  if (!viewer.org || !viewer.isContractor) {
+    redirect(viewer.isAdmin ? '/board' : viewer.isClient ? '/portal' : viewer.pendingContractor ? '/pending' : '/no-access');
+  }
   return viewer as Viewer & { org: OrgMembership };
 }
 
@@ -102,4 +109,15 @@ export async function requireClient(): Promise<Viewer & { org: OrgMembership }> 
   const org = viewer.org?.roles.includes('client') ? viewer.org : viewer.orgs.find((o) => o.roles.includes('client'));
   if (!org) redirect(viewer.isAdmin ? '/board' : viewer.isContractor ? '/app' : '/no-access');
   return { ...viewer, org, isClient: true } as Viewer & { org: OrgMembership };
+}
+
+/**
+ * For a contractor's own profile, details and gear, which belong to the
+ * person rather than an organization. A crew applicant waiting for approval
+ * fills these in too, so the team can decide.
+ */
+export async function requireCrewMember(): Promise<Viewer> {
+  const viewer = await getViewer();
+  if (!viewer.isContractor && !viewer.pendingContractor) redirect(viewer.isAdmin ? '/board' : viewer.isClient ? '/portal' : '/no-access');
+  return viewer;
 }

@@ -1,7 +1,7 @@
 'use server';
 
 import type { ActionResult } from '@/lib/action-types';
-import { requireContractor } from '@/lib/context';
+import { requireContractor, requireCrewMember } from '@/lib/context';
 import { cents, fail, failWith, int, ok, text } from '@/lib/errors';
 import { settle, succeed } from '@/lib/mutate';
 
@@ -126,7 +126,7 @@ export async function markUploaded(_p: ActionResult, form: FormData) {
 // ------------------------------------------------------------- profile
 
 export async function saveProfile(_p: ActionResult, form: FormData): Promise<ActionResult> {
-  const viewer = await requireContractor();
+  const viewer = await requireCrewMember();
   const name = text(form, 'full_name');
   if (!name) return fail('Your name is needed.');
   const { error } = await viewer.supabase
@@ -137,7 +137,7 @@ export async function saveProfile(_p: ActionResult, form: FormData): Promise<Act
 }
 
 export async function saveDetails(_p: ActionResult, form: FormData): Promise<ActionResult> {
-  const viewer = await requireContractor();
+  const viewer = await requireCrewMember();
   const lat = text(form, 'latitude');
   const lng = text(form, 'longitude');
   if ((lat === null) !== (lng === null)) return fail('Give both latitude and longitude, or neither.');
@@ -163,7 +163,7 @@ export async function saveDetails(_p: ActionResult, form: FormData): Promise<Act
 const GEAR = ['camera_body', 'lens', 'audio', 'lighting', 'drone', 'other'];
 
 export async function addGear(_p: ActionResult, form: FormData): Promise<ActionResult> {
-  const viewer = await requireContractor();
+  const viewer = await requireCrewMember();
   const category = text(form, 'category');
   if (!category || !GEAR.includes(category)) return fail('Choose a category.');
   const { error } = await viewer.supabase.from('equipment').insert({
@@ -176,7 +176,7 @@ export async function addGear(_p: ActionResult, form: FormData): Promise<ActionR
 }
 
 export async function removeGear(_p: ActionResult, form: FormData): Promise<ActionResult> {
-  const viewer = await requireContractor();
+  const viewer = await requireCrewMember();
   const id = idOf(form, 'equipment_id');
   if (!id) return fail('Missing gear.');
   const { error } = await viewer.supabase.from('equipment').delete().eq('id', id);

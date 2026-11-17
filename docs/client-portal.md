@@ -75,3 +75,27 @@ The webhook verifies Stripe's signature and accepts it for five minutes. It is i
 
 - Migrations `20261118000100` to `…0400` are applied to the hosted project. The applied `…0100` has its long comments trimmed; the statements are the same as the file.
 - `client-checkout` (JWT required) and `stripe-webhook` (JWT off; the Stripe signature is the check) are deployed. Like footage-download, they ship trimmed copies of `_shared/env.ts`, `http.ts`, `db.ts` and `stripe.ts` that hold only the functions each one uses (see `docs/foundation-review.md`).
+
+## Accounts and sign-in (2026-11-17)
+
+Sign-in is email and password, with a separate sign-in for each portal:
+
+| Portal | Sign in | Sign up | Lands on |
+| --- | --- | --- | --- |
+| Admin console (owners, producers) | `/login/admin` | By invitation only | `/board` |
+| Crew | `/login/contractor` | `/signup/contractor`, then approval | `/app` (`/pending` until approved) |
+| Client portal | `/login/client` | `/signup/client` | `/portal` |
+
+- `/` is the chooser when signed out, and routes by role when signed in. A signed-out visitor to a portal page is sent to that portal's sign-in.
+- **Nothing is granted until the email is confirmed** (`app.apply_signup`, on the confirmation trigger):
+  - crew get a *pending* membership and see no jobs, events or organization until an owner or producer approves them on the Contractors page;
+  - clients are attached to every client record that already lists their confirmed email; anyone else gets an empty portal;
+  - nobody can sign up as an owner or producer.
+- Owners turn crew and client sign-up on or off in Settings.
+- Forgot password (`/forgot`) emails a link to `/account/password`. Anyone invited before passwords existed, or who used email links, sets their first password this way, or on first arrival from an invitation link.
+- Tests: `supabase/tests/13_password_accounts.test.sql` (31 checks).
+
+**Supabase Auth settings this relies on** (owner step, dashboard → Authentication):
+- *Confirm email* must stay **on**. If it were off, an account would count as confirmed without anyone opening the email, and client matching by email would not be safe.
+- Turn on *leaked password protection* (the security advisor flags it).
+- *Redirect URLs* must include `https://moments-to-media-admin.vercel.app/auth/callback`; it already does for invitations.

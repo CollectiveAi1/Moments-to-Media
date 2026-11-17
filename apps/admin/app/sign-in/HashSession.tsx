@@ -16,6 +16,7 @@ export function HashSession() {
     const hash = new URLSearchParams(window.location.hash.slice(1));
     const access = hash.get('access_token');
     const refresh = hash.get('refresh_token');
+    const type = hash.get('type') ?? '';
     if (!access || !refresh) {
       if (hash.get('error_description')) setState('failed');
       return;
@@ -26,14 +27,14 @@ export function HashSession() {
       .auth.setSession({ access_token: access, refresh_token: refresh })
       .then(({ error }) => {
         if (error) setState('failed');
-        else window.location.replace('/auth/finish');
+        else window.location.replace(`/auth/finish?type=${encodeURIComponent(type)}`);
       });
   }, []);
 
-  if (state === 'idle') return null;
+  if (state === 'idle') return <p style={{ margin: 0, fontSize: 14, color: color.textMuted }}>Nothing to do here. Use the link below to sign in.</p>;
   return (
     <p role={state === 'failed' ? 'alert' : 'status'} style={{ margin: 0, fontSize: 14, color: state === 'failed' ? color.warnText : color.positiveStrong }}>
-      {state === 'working' ? 'Signing you in…' : 'That sign-in link has expired or was already used. Ask for a new one below.'}
+      {state === 'working' ? 'Signing you in…' : 'That link has expired or was already used. Sign in with your password, or use “Forgot password” for a new link.'}
     </p>
   );
 }

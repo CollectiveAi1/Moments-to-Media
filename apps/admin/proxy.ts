@@ -1,11 +1,14 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { supabaseAnonKey, supabaseUrl } from './lib/env';
+import { portalForPath } from './lib/portals';
 
 // The inquiry form and proposal links are opened by people with no account.
 // They reach the database only through functions made for them (see
 // supabase/migrations/20261118000100_client_side.sql).
-const PUBLIC_PATHS = ['/sign-in', '/auth/', '/inquire/', '/p/'];
+// Sign-in, sign-up and password pages are open too, and so is "/", which is
+// the portal chooser when signed out.
+const PUBLIC_PATHS = ['/sign-in', '/auth/', '/inquire/', '/p/', '/login/', '/signup/', '/forgot'];
 
 /**
  * Runs before every page. Two jobs: keep the session cookie fresh, and send
@@ -33,11 +36,11 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
-  const isPublic = PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p));
+  const isPublic = pathname === '/' || PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p));
 
   if (!user && !isPublic) {
     const url = request.nextUrl.clone();
-    url.pathname = '/sign-in';
+    url.pathname = `/login/${portalForPath(pathname)}`;
     url.search = '';
     return NextResponse.redirect(url);
   }

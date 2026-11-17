@@ -49,10 +49,11 @@ export default async function ProposalLinkPage({ params, searchParams }: { param
           <Card>
             <strong style={{ fontSize: 17 }}>Next: your client portal</strong>
             <Muted>
-              Your invoice, the signed contract, payments and, after the event, your photos and video all live in your portal. Sign in with the email
-              this proposal was sent to; we’ll email you a link, no password needed.
+              Your invoice, the signed contract, payments and, after the event, your photos and video all live in your portal. Create your account
+              with the email this proposal was sent to, and it’s all there.
             </Muted>
-            <LinkButton href="/sign-in" variant="primary" height={48}>Open my client portal</LinkButton>
+            <LinkButton href="/signup/client" variant="primary" height={48}>Create my portal account</LinkButton>
+            <LinkButton href="/login/client" variant="secondary" height={44}>I already have an account</LinkButton>
           </Card>
           <details>
             <summary style={{ cursor: 'pointer', color: color.label }}>Signed contract</summary>

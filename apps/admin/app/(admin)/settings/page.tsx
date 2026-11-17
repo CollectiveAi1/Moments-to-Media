@@ -4,7 +4,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { Card, Field, H2, LinkButton, Muted, Notice, Row, StatusText, Tag, inputStyle } from '@/components/ui';
 import { requireAdmin } from '@/lib/context';
 import { color } from '@/lib/ui';
-import { setClientPayments } from '../client-actions';
+import { setClientPayments, setSignups } from '../client-actions';
 import { removeMember, saveOrganization, updateMember } from './actions';
 
 export const metadata: Metadata = { title: 'Settings' };
@@ -29,7 +29,7 @@ export default async function SettingsPage() {
   const viewer = await requireAdmin();
   const db = viewer.supabase;
   const [{ data: org }, { data: members }] = await Promise.all([
-    db.from('organizations').select('name, slug, settings, in_app_payments_enabled, stripe_account_id, client_payments_enabled').eq('id', viewer.org.id).maybeSingle(),
+    db.from('organizations').select('name, slug, settings, in_app_payments_enabled, stripe_account_id, client_payments_enabled, contractor_signup, client_signup').eq('id', viewer.org.id).maybeSingle(),
     db.from('memberships').select('id, user_id, role, status, created_at').eq('org_id', viewer.org.id).order('role'),
   ]);
   const ids = [...new Set((members ?? []).map((m) => String(m.user_id)))];
@@ -86,6 +86,24 @@ export default async function SettingsPage() {
           </Muted>
         </Card>
       )}
+
+      {viewer.isOwner && org ? (
+        <Card>
+          <H2 size={20}>Sign-up</H2>
+          <Muted>
+            People can create their own account with an email and password. Crew who sign up wait for approval on the Contractors page; clients
+            see the bookings that already carry their email. Owners and producers are always invited.
+          </Muted>
+          <ActionForm action={setSignups} submit="Save">
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, minHeight: 40, fontSize: 14 }}>
+              <input type="checkbox" name="contractor_signup" defaultChecked={Boolean(org.contractor_signup)} /> Crew can apply at /signup/contractor
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, minHeight: 40, fontSize: 14 }}>
+              <input type="checkbox" name="client_signup" defaultChecked={Boolean(org.client_signup)} /> Clients can create an account at /signup/client
+            </label>
+          </ActionForm>
+        </Card>
+      ) : null}
 
       {viewer.isOwner && org ? (
         <Card>

@@ -479,8 +479,8 @@ export async function inviteClient(_p: ActionResult, form: FormData): Promise<Ac
   if (sent.error) {
     return succeed(
       sent.error.status === 429
-        ? `Portal access granted to ${email}, but the email limit was hit. They can sign in at /sign-in with that address.`
-        : `Portal access granted to ${email}. The email did not send (${sent.error.message}); they can sign in at /sign-in.`,
+        ? `Portal access granted to ${email}, but the email limit was hit. They can create an account at /signup/client with that address.`
+        : `Portal access granted to ${email}. The email did not send (${sent.error.message}); they can create an account at /signup/client.`,
     );
   }
   return succeed(`Portal access granted. A sign-in link is on its way to ${email}.`);
@@ -514,4 +514,14 @@ export async function setClientPayments(_p: ActionResult, form: FormData): Promi
   const on = form.get('enabled') === 'on';
   const { error } = await viewer.supabase.from('organizations').update({ client_payments_enabled: on }).eq('id', viewer.org.id);
   return settle(error, on ? 'Card payments switched on for client invoices.' : 'Card payments switched off. Record payments by hand.');
+}
+
+export async function setSignups(_p: ActionResult, form: FormData): Promise<ActionResult> {
+  const viewer = await requireAdmin();
+  if (!viewer.isOwner) return fail('Only an owner can change who may sign up.');
+  const { error } = await viewer.supabase
+    .from('organizations')
+    .update({ contractor_signup: form.get('contractor_signup') === 'on', client_signup: form.get('client_signup') === 'on' })
+    .eq('id', viewer.org.id);
+  return settle(error, 'Sign-up settings saved.');
 }
