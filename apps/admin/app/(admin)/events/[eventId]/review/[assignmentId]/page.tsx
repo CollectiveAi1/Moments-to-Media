@@ -75,7 +75,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ eventId
             </Muted>
           </Card>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(160px, 100%), 1fr))', gap: 10 }}>
             {files.map((f) => (
               <a
                 key={String(f.id)}

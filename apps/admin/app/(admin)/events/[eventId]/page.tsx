@@ -133,7 +133,7 @@ export default async function EventPage({
         }
       />
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(180px, 100%), 1fr))', gap: 12 }}>
         <Fact label="Crew" value={`${filled} of ${live.length} slots filled`} />
         <Fact label="Hours" value={hours(String(event.starts_at), String(event.ends_at))} />
         <Fact label="Shot list" value={`${shots.length} shots · ${shots.filter((s) => s.must_have).length} must-have`} />
@@ -347,7 +347,7 @@ export default async function EventPage({
       </Card>
 
       {/* ---------------------------------------------------------- contacts */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 20 }}>
         <Card>
           <H2>On-site and emergency</H2>
           {contacts.length === 0 ? <Muted>None yet. Confirmed crew see these in their packet.</Muted> : null}

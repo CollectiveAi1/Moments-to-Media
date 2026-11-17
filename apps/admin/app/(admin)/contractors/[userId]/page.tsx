@@ -57,7 +57,7 @@ export default async function ContractorPage({ params }: { params: Promise<{ use
         </Muted>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(300px, 100%), 1fr))', gap: 20 }}>
         <Card>
           <H2 size={20}>Profile</H2>
           <ListRow label="Based in" value={d?.home_base_label ? String(d.home_base_label) : <Muted size={13}>Not set</Muted>} />

@@ -36,7 +36,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
       <div style={{ width: '100%', maxWidth: 980, display: 'flex', flexDirection: 'column', gap: 28, alignItems: 'center' }}>
         <Wordmark />
         <h1 style={{ margin: 0, fontFamily: fonts.heading, fontSize: 30, fontWeight: 600, textAlign: 'center' }}>Sign in</h1>
-        <div style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
+        <div style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))', gap: 16 }}>
           {order.map((p) => (
             <section key={p} style={{ ...card(radius.xxl), padding: 22, display: 'flex', flexDirection: 'column', gap: 10 }}>
               <span style={{ fontFamily: fonts.label, fontSize: 12, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: color.label }}>{PORTALS[p].who}</span>

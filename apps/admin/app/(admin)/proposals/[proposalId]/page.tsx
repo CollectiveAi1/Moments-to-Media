@@ -81,7 +81,7 @@ export default async function ProposalPage({ params }: { params: Promise<{ propo
         </Card>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: 20, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(420px, 100%), 1fr))', gap: 20, alignItems: 'start' }}>
         <Card>
           <H2 size={20}>What’s offered</H2>
           {lines.length === 0 ? <Muted>Add at least one package.</Muted> : null}

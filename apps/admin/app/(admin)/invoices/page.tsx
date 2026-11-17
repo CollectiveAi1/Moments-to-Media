@@ -38,7 +38,7 @@ export default async function InvoicesPage() {
   return (
     <>
       <PageHeader title="Invoices" subtitle="What clients owe and what they’ve paid." actions={<LinkButton href="/invoices/new">New invoice</LinkButton>} />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: 14 }}>
         <Stat label="Outstanding" value={money(outstanding)} />
         <Stat label="Overdue" value={money(overdue)} warn={overdue > 0} />
         <Stat label={`Collected on ${year} invoices`} value={money(collected)} />

@@ -50,7 +50,7 @@ export default async function PackagesPage() {
       {packages.length === 0 ? (
         <Empty title="No packages yet">Add your main packages and a few add-ons (drone, extra hour, rush delivery).</Empty>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(320px, 100%), 1fr))', gap: 16 }}>
           {packages.map((p) => (
             <Card key={String(p.id)}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline' }}>

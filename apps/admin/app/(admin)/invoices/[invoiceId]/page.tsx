@@ -54,7 +54,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ invoic
         {inv.proposal_id ? <Link href={`/proposals/${String(inv.proposal_id)}`}>From the signed proposal</Link> : null}
       </Row>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: 20, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(420px, 100%), 1fr))', gap: 20, alignItems: 'start' }}>
         <Card>
           <H2 size={20}>Lines</H2>
           {(lines ?? []).length === 0 ? <Muted>No lines yet.</Muted> : null}

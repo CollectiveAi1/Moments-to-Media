@@ -50,7 +50,7 @@ export default async function PortalHome() {
         </Card>
       ) : null}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 20, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(340px, 100%), 1fr))', gap: 20, alignItems: 'start' }}>
         <Card highlight={owing > 0}>
           <H2 size={20}>Payments</H2>
           {dueRows.length === 0 ? <Muted>You’re all paid up. Thank you!</Muted> : null}

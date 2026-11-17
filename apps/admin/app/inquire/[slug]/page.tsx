@@ -37,7 +37,7 @@ export default async function InquirePage({ params, searchParams }: { params: Pr
         <H1>Check our availability</H1>
         <Muted>Tell us about your event. We’ll reply with availability and a proposal you can sign and book online.</Muted>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 24, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 24, alignItems: 'start' }}>
         <Card>
           <ActionForm action={submitInquiry} submit="Send inquiry" variant="primary" height={48}>
             <input type="hidden" name="slug" value={slug} />

@@ -101,7 +101,7 @@ export default async function StaffingPage({
           No slots yet. <Link href={`/events/${eventId}`}>Add slots on the event page.</Link>
         </Notice>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: 12 }}>
           {slots.map((s) => {
             const committed = s.assignments.find((a) => isCommitted(a.status));
             const sel = s.assignments.find((a) => a.status === 'selected');

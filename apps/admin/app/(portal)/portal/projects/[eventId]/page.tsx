@@ -36,7 +36,7 @@ export default async function PortalProject({ params }: { params: Promise<{ even
         </Muted>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 20, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(340px, 100%), 1fr))', gap: 20, alignItems: 'start' }}>
         <Card highlight={files.length > 0}>
           <H2 size={20}>Your photos and video</H2>
           {release ? (

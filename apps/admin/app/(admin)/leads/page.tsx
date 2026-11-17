@@ -49,7 +49,7 @@ export default async function LeadsPage() {
       </Card>
 
       <div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: 14 }}>
           {COLUMNS.map((col) => {
             const items = leads.filter((l) => l.status === col);
             return (

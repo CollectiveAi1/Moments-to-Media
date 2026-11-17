@@ -16,7 +16,7 @@ export function DemoPanel({ unavailable }: { unavailable?: boolean }) {
         </span>
         {unavailable ? <span role="alert" style={{ fontSize: 14, color: color.warnText }}>The demo sign-in is not available right now.</span> : null}
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: 10 }}>
         {order.map((p) => (
           <form key={p} action={demoSignIn}>
             <input type="hidden" name="portal" value={p} />

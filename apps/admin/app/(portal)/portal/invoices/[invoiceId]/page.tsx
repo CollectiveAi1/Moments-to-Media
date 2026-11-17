@@ -55,7 +55,7 @@ export default async function PortalInvoice({ params, searchParams }: { params: 
       {justPaid ? <Notice>Thank you! Your payment is being confirmed and will show here within a minute.</Notice> : null}
       {cancelled ? <Notice tone="warn">Payment was not completed. Nothing was charged.</Notice> : null}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 20, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(340px, 100%), 1fr))', gap: 20, alignItems: 'start' }}>
         <Card>
           {(lines ?? []).map((l) => (
             <ListRow key={String(l.id)} label={`${String(l.description)}${Number(l.quantity) > 1 ? ` × ${String(l.quantity)}` : ''}`} value={money(Number(l.unit_cents) * Number(l.quantity))} />

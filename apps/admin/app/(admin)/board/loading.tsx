@@ -23,7 +23,7 @@ export default function Loading() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: `repeat(${COLUMNS.length}, minmax(220px, 1fr))`,
+            gridTemplateColumns: `repeat(${COLUMNS.length}, minmax(min(220px, 100%), 1fr))`,
             gap: 14,
             minWidth: COLUMNS.length * 230,
           }}
