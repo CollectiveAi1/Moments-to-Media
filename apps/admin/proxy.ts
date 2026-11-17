@@ -8,7 +8,7 @@ import { portalForPath } from './lib/portals';
 // supabase/migrations/20261118000100_client_side.sql).
 // Sign-in, sign-up and password pages are open too, and so is "/", which is
 // the portal chooser when signed out.
-const PUBLIC_PATHS = ['/sign-in', '/auth/', '/inquire/', '/p/', '/login/', '/signup/', '/forgot'];
+const PUBLIC_PATHS = ['/sign-in', '/auth/', '/inquire/', '/p/', '/login/', '/signup/', '/forgot', '/account/password'];
 
 /**
  * Runs before every page. Two jobs: keep the session cookie fresh, and send
