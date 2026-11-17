@@ -196,6 +196,24 @@ select is(
     format($q$select public.record_stripe_payment(%L, 1000, 'cs_fake', null, 'card')$q$, (select v from tests.ids where k = 'invoice'))),
   '42501', 'portal · nor fake a card payment');
 
+-- A returning client: a second proposal to the same email is matched to the
+-- same client when it is sent, so one portal holds every project.
+insert into tests.ids
+select 'proposal2', tests.value_as(tests.id('producer_a'), format($q$
+  insert into public.proposals (org_id, created_by, title, client_name, client_email, contract_body,
+                                event_starts_at, event_ends_at, time_zone)
+  values (%L, %L, 'Lee anniversary', 'Pat Lee', 'PAT@example.test', 'You agree to every term of this contract.',
+          now() + interval '400 days', now() + interval '400 days 3 hours', 'America/New_York')
+  returning id$q$, tests.id('org_a'), tests.id('producer_a')));
+select lives_ok(format($q$insert into public.proposal_items (org_id, proposal_id, name, price_cents) values (%L, %L, 'Two hours', 50000)$q$,
+  tests.id('org_a'), (select v from tests.ids where k = 'proposal2')), 'returning client · second proposal built');
+select is(tests.error_as(tests.id('producer_a'), format('select public.send_proposal(%L)', (select v from tests.ids where k = 'proposal2'))),
+  'NO_ERROR', 'returning client · second proposal sent');
+select is((select client_id::text from public.proposals where id = (select v from tests.ids where k = 'proposal2')::uuid),
+  (select v from tests.ids where k = 'client'), 'returning client · matched to the same client by email');
+select is(tests.count_as((select v from tests.ids where k = 'client_user')::uuid, 'select 1 from public.proposals'), 2::bigint,
+  'returning client · and it shows in the portal they already have');
+
 -- ============================================================= payments
 
 select is(

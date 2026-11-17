@@ -41,7 +41,10 @@ Producers can also add clients, invoices and inquiries by hand.
 - `anon` can call exactly five functions:
   - `inquiry_form` and `submit_inquiry` (rate-limited per email and per organization);
   - `open_proposal`, `accept_proposal` and `decline_proposal`, which need the 64-character secret token.
-- Tests: `supabase/tests/12_client_side.test.sql`, 64 checks, allowed and denied. `scripts/qa/client_db.py` turns that file into one rolled-back script to run against a hosted project.
+- A returning client is matched by email when a proposal is sent (`20261118000400`), so one client record and one portal hold all their projects. Live QA caught the case where a second signing created a duplicate client.
+- Tests:
+  - `supabase/tests/12_client_side.test.sql`: 68 pgTAP checks, allowed and denied. `scripts/qa/client_db.py` turns it into one rolled-back script for a hosted project.
+  - `scripts/qa/client_live.ts`: 59 checks through the deployed site's real forms, from inquiry to signing, the portal and payment.
 
 ## Switching on card payments (owner, billing setup)
 
@@ -70,5 +73,5 @@ The webhook verifies Stripe's signature and accepts it for five minutes. It is i
 
 ## Deployment notes
 
-- Migrations `20261118000100`, `…0200` and `…0300` are applied to the hosted project. The applied `…0100` has its long comments trimmed; the statements are the same as the file.
+- Migrations `20261118000100` to `…0400` are applied to the hosted project. The applied `…0100` has its long comments trimmed; the statements are the same as the file.
 - `client-checkout` (JWT required) and `stripe-webhook` (JWT off; the Stripe signature is the check) are deployed. Like footage-download, they ship trimmed copies of `_shared/env.ts`, `http.ts`, `db.ts` and `stripe.ts` that hold only the functions each one uses (see `docs/foundation-review.md`).
