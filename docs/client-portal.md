@@ -108,7 +108,7 @@ The sign-in page shows a **Demo mode** panel with one button per portal. Each si
 | --- | --- | --- |
 | Admin console | Sam Park (producer) | The board's sample events, packages, two inquiries, a signed and a waiting proposal, an invoice with the deposit paid |
 | Crew | Maya Chen (photographer) | Her jobs, schedule and earnings from the board demo |
-| Client portal | Avery Harper (wedding client) | A signed booking, an invoice with the deposit paid and a balance due, the contract, a message from the studio |
+| Client portal | Avery Harper (wedding client) | A signed booking, an invoice with the deposit paid and a balance due, the contract, a message from the studio, and a delivered engagement session in **Media** (four real sample photos in R2, uploaded through the normal pipeline by `scripts/demo/upload_samples.ts`) |
 
 - A banner shows on every page while in a demo account, with "Try another portal".
 - Demo accounts cannot send emails (invitations, portal access) or change a password. Everything else works on the demo organization's data. The demo admin is a producer, not an owner, so organization settings and members stay locked.
@@ -116,5 +116,14 @@ The sign-in page shows a **Demo mode** panel with one button per portal. Each si
 
 **To remove it after approval:**
 1. Delete `DEMO_MODE` and `DEMO_PASSWORD` in Vercel and redeploy. The panel and the buttons disappear.
-2. Run `supabase/demo/portal_demo_teardown.sql`. It removes the sample client side and disables the demo logins.
+2. Run `supabase/demo/portal_demo_teardown.sql`. It removes the sample client side, including the engagement session and its upload rows, and disables the demo logins. The four sample photos stay in R2 under `moments-to-media/…harper-lee-engagement-session…` until the footage lifecycle rule, or a manual delete, removes them.
 3. Delete `apps/admin/lib/demo.ts`, `components/auth/DemoPanel.tsx` and `DemoBanner.tsx`, and their callers (`grep -rn demo apps/admin`).
+
+## Client media tab
+
+`/portal/media` lists every file delivered to the client across all their projects, grouped by project and by kind:
+- **Final edits:** uploads of kind `deliverables`;
+- **Selects:** kind `selects`;
+- **Original footage:** kind `raw`.
+
+Each file has a Download button, a private 15-minute link straight from R2. A file appears once two things are true: the contractor's work on it is approved, and the producer has clicked **Release approved media to the client** on the event (`public.client_media` decides). The overview shows a "Your media is ready" card that links here.
