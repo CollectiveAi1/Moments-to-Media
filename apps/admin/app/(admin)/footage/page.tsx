@@ -85,10 +85,10 @@ export default async function FootagePage({ searchParams }: { searchParams: Prom
       <section style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
           <H2 size={20}>Footage library</H2>
-          <form style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
-            <label style={{ fontSize: 14, color: color.textMuted, display: 'flex', gap: 8, alignItems: 'center' }}>
+          <form style={{ marginLeft: 'auto', display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', maxWidth: '100%' }}>
+            <label style={{ fontSize: 14, color: color.textMuted, display: 'flex', gap: 8, alignItems: 'center', minWidth: 0, maxWidth: '100%' }}>
               Event
-              <select name="event" defaultValue={eventFilter ?? ''} style={{ minHeight: 44, borderRadius: 8, border: `1px solid ${color.inputBorder}`, background: color.surface, padding: '0 8px' }}>
+              <select name="event" defaultValue={eventFilter ?? ''} style={{ minHeight: 44, minWidth: 0, maxWidth: '100%', borderRadius: 8, border: `1px solid ${color.inputBorder}`, background: color.surface, padding: '0 8px' }}>
                 <option value="">All events</option>
                 {(events ?? []).map((e) => (
                   <option key={String(e.id)} value={String(e.id)}>{String(e.title)}</option>
