@@ -158,6 +158,12 @@ export async function demoSignIn(form: FormData): Promise<void> {
 /** Ends every session this account has, on every device, then signs out here. */
 export async function signOutEverywhere(): Promise<void> {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  // Demo accounts are shared by everyone trying the demo: end only this session.
+  if (isDemoEmail(user?.email)) {
+    await supabase.auth.signOut();
+    redirect('/');
+  }
   await supabase.auth.signOut({ scope: 'global' });
   redirect('/?signed_out=everywhere');
 }
