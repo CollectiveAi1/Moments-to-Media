@@ -38,6 +38,8 @@ export default async function Earnings() {
     <>
       <BackLink href="/app/profile">Profile</BackLink>
       <H1>Earnings</H1>
+      <div className="c-cols">
+      <div className="c-col">
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <Muted>Paid in {year}</Muted>
         <span style={{ fontFamily: fonts.heading, fontSize: 40, fontWeight: 600 }}>{money(paidThisYear)}</span>
@@ -64,7 +66,8 @@ export default async function Earnings() {
           );
         })}
       </section>
-
+      </div>
+      <div className="c-aside">
       <Card>
         <H2 size={20}>Bank details and tax forms</H2>
         <Muted>Managed securely by Stripe. Your {year} 1099-NEC will be there in January.</Muted>
@@ -73,6 +76,8 @@ export default async function Earnings() {
         </button>
         <Muted size={12}>Stripe payouts are not connected for this organization yet. Until they are, the producer pays you directly and records it here.</Muted>
       </Card>
+      </div>
+      </div>
     </>
   );
 }

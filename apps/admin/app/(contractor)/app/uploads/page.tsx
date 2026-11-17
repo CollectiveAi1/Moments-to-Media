@@ -31,6 +31,7 @@ export default async function Uploads() {
         <Empty title="Nothing to upload">Uploads open when you check in on a job.</Empty>
       ) : null}
 
+      <div className="c-grid">
       {active.map((j) => {
         const mine = (uploads ?? []).filter((u) => String(u.assignment_id) === j.id);
         const landed = mine.filter((u) => u.status === 'completed');
@@ -98,6 +99,7 @@ export default async function Uploads() {
           <Muted size={13}>Not started. Uploads open when you check in.</Muted>
         </Card>
       ))}
+      </div>
     </>
   );
 }

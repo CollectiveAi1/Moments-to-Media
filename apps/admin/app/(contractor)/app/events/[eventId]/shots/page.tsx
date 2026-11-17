@@ -78,6 +78,8 @@ export default async function ShotList({ params }: { params: Promise<{ eventId: 
       {status === 'confirmed' ? <Notice tone="warn">Check in from the packet to start ticking shots off.</Notice> : null}
       {shots.length === 0 ? <Muted>The producer has not written a shot list for this event.</Muted> : null}
 
+      <div className="c-cols">
+      <div className="c-col">
       {must.length ? (
         <section style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <Eyebrow tone="warn">Must-have</Eyebrow>
@@ -91,6 +93,8 @@ export default async function ShotList({ params }: { params: Promise<{ eventId: 
         </section>
       ) : null}
 
+      </div>
+      <div className="c-aside">
       {status === 'checked_in' ? (
         <BottomBar>
           <span style={{ fontSize: 13, fontWeight: 700, color: mustLeft === 0 ? color.positive : color.attention }}>
@@ -108,7 +112,13 @@ export default async function ShotList({ params }: { params: Promise<{ eventId: 
         </BottomBar>
       ) : status === 'checked_out' ? (
         <Notice>Checked out. Your footage goes up from Uploads.</Notice>
-      ) : null}
+      ) : (
+        <span className="c-desktop-only">
+          <Muted size={13}>Tick shots as you get them; the producer sees progress live.</Muted>
+        </span>
+      )}
+      </div>
+      </div>
     </>
   );
 }

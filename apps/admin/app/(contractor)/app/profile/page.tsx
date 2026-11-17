@@ -73,6 +73,8 @@ export default async function Profile({ searchParams }: { searchParams: Promise<
         </span>
       </header>
 
+      <div className="c-cols">
+      <div className="c-col">
       <Card>
         <Eyebrow>Ready to work</Eyebrow>
         <ListRow label="Stripe payouts" value={d?.stripe_payouts_enabled ? <StatusText tone="positive">Ready</StatusText> : <StatusText tone="warn">Not set up</StatusText>} />
@@ -166,6 +168,8 @@ export default async function Profile({ searchParams }: { searchParams: Promise<
         </ActionForm>
       </Card>
 
+      </div>
+      <div className="c-aside">
       <Card>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Eyebrow>Availability</Eyebrow>
@@ -215,7 +219,10 @@ export default async function Profile({ searchParams }: { searchParams: Promise<
       <Link href="/app/profile/earnings" style={{ background: color.surface, border: `1px solid ${color.border}`, borderRadius: 14, padding: 16, display: 'flex', justifyContent: 'space-between', textDecoration: 'none', color: color.text, fontSize: 15, fontWeight: 700 }}>
         Earnings and tax forms <span aria-hidden="true">›</span>
       </Link>
+      </div>
+      </div>
 
+      <div className="c-mobile-only">
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center' }}>
         {viewer.isAdmin ? <Link href="/board" style={{ fontSize: 14 }}>Open the admin console →</Link> : null}
         <form action="/auth/sign-out" method="post">
@@ -223,6 +230,7 @@ export default async function Profile({ searchParams }: { searchParams: Promise<
             Sign out
           </button>
         </form>
+      </div>
       </div>
     </>
   );

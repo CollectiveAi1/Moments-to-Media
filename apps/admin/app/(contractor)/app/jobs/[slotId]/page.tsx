@@ -46,7 +46,9 @@ export default async function JobDetail({ params }: { params: Promise<{ slotId: 
         </Eyebrow>
         <H1>{String(job.event_title)}</H1>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+      <div className="c-cols">
+      <div className="c-col">
+      <div className="c-facts">
         <FactTile label="Date" value={formatDay(String(job.starts_at), zone)} />
         <FactTile label="Hours" value={`${timeRange(String(job.starts_at), String(job.ends_at), zone)} (${hours(String(job.starts_at), String(job.ends_at))})`} />
         <FactTile label="Area" value={String(job.area_label ?? 'To be confirmed')} />
@@ -82,6 +84,8 @@ export default async function JobDetail({ params }: { params: Promise<{ slotId: 
       </section>
 
       <LockNotice>Exact address, client contact, creative brief and shot list unlock when you’re confirmed.</LockNotice>
+      </div>
+      <div className="c-aside">
 
       <BottomBar>
         {status === null ? (
@@ -127,6 +131,8 @@ export default async function JobDetail({ params }: { params: Promise<{ slotId: 
           <Muted size={12}>Interest closes {dateTime(String(job.interest_deadline), zone)}</Muted>
         ) : null}
       </BottomBar>
+      </div>
+      </div>
     </>
   );
 }

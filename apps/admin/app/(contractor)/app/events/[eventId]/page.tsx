@@ -63,6 +63,8 @@ export default async function Packet({ params }: { params: Promise<{ eventId: st
         </Muted>
       </div>
 
+      <div className="c-cols">
+      <div className="c-col">
       <Card>
         {status === 'confirmed' ? (
           ['staffed', 'in_progress'].includes(String(event.status)) ? (
@@ -120,25 +122,6 @@ export default async function Packet({ params }: { params: Promise<{ eventId: st
         </Section>
       ) : null}
 
-      {clientContact.data ? (
-        <Section title="Client contact">
-          <Card>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                <strong style={{ fontSize: 15 }}>{String(clientContact.data.name)}</strong>
-                <Muted size={13}>{String(clientContact.data.email ?? '')}</Muted>
-              </span>
-              {clientContact.data.phone ? (
-                <>
-                  <RoundLink href={`tel:${String(clientContact.data.phone)}`} label="Call" path="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2" />
-                  <RoundLink href={`sms:${String(clientContact.data.phone)}`} label="Text" path="M4 5h16v11H8l-4 4z" />
-                </>
-              ) : null}
-            </div>
-          </Card>
-        </Section>
-      ) : null}
-
       {brief.data ? (
         <Section title="Creative brief">
           <Card>
@@ -178,6 +161,27 @@ export default async function Packet({ params }: { params: Promise<{ eventId: st
         </Section>
       ) : null}
 
+      </div>
+      <div className="c-aside">
+      {clientContact.data ? (
+        <Section title="Client contact">
+          <Card>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <strong style={{ fontSize: 15 }}>{String(clientContact.data.name)}</strong>
+                <Muted size={13}>{String(clientContact.data.email ?? '')}</Muted>
+              </span>
+              {clientContact.data.phone ? (
+                <>
+                  <RoundLink href={`tel:${String(clientContact.data.phone)}`} label="Call" path="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2" />
+                  <RoundLink href={`sms:${String(clientContact.data.phone)}`} label="Text" path="M4 5h16v11H8l-4 4z" />
+                </>
+              ) : null}
+            </div>
+          </Card>
+        </Section>
+      ) : null}
+
       <Section title="Crew">
         {(crew.data ?? []).map((c) => (
           <ListRow
@@ -211,6 +215,8 @@ export default async function Packet({ params }: { params: Promise<{ eventId: st
         </LinkButton>
         <Muted size={12}>{timeRange(String(event.starts_at), String(event.ends_at), zone)}</Muted>
       </BottomBar>
+      </div>
+      </div>
     </>
   );
 }

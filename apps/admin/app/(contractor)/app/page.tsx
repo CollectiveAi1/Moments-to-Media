@@ -41,13 +41,22 @@ export default async function ContractorHome() {
   return (
     <>
       <header style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <Monogram />
-        <H1 size={24}>Hi, {firstName(viewer.name)}</H1>
-        <span style={{ marginLeft: 'auto' }}>
+        <span className="c-mobile-only">
+          <Monogram />
+        </span>
+        <span style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <H1 size={24}>Hi, {firstName(viewer.name)}</H1>
+          <span className="c-desktop-only" style={{ fontSize: 14, color: color.textMuted }}>
+            {now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: next?.timeZone ?? 'America/New_York' })}
+          </span>
+        </span>
+        <span className="c-mobile-only" style={{ marginLeft: 'auto' }}>
           <Avatar name={viewer.name} href="/app/profile" />
         </span>
       </header>
 
+      <div className="c-cols">
+      <div className="c-col">
       {next ? (
         <Card r={radius.xxl}>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline' }}>
@@ -129,6 +138,8 @@ export default async function ContractorHome() {
         </section>
       ) : null}
 
+      </div>
+      <div className="c-col">
       {upcoming.length ? (
         <section style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           <Eyebrow>Upcoming</Eyebrow>
@@ -171,8 +182,11 @@ export default async function ContractorHome() {
         </section>
       ) : null}
 
+      </div>
+      </div>
+
       {viewer.isAdmin ? (
-        <Link href="/board" style={{ fontSize: 14, textAlign: 'center' }}>
+        <Link href="/board" className="c-mobile-only" style={{ fontSize: 14, textAlign: 'center' }}>
           Open the admin console →
         </Link>
       ) : null}

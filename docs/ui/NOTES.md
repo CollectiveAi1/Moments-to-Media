@@ -106,3 +106,7 @@ phone today. Someone who is both owner and contractor switches with the
 - A selected contractor cannot Decline in the app (the state machine allows
   only confirm or expire from `selected`); the screen says to tell the
   producer instead.
+
+## Contractor web view on a desktop
+
+UI-SPEC draws the contractor screens at phone width only. On screens 960px and wider the web view now uses a side navigation (Home, Jobs, Uploads, Profile, Earnings, admin console, sign out) instead of the bottom tab bar, a page up to 1200px wide, two columns on Home, the job detail, the event packet, the shot list, Profile and Earnings, and a card grid for Jobs and Uploads. The bottom action bar becomes a card at the top of the side column. Below 960px nothing changes: the column wrappers are `display: contents`, so the phone order and the pinned action bar are as the spec draws them. The classes live in `apps/admin/app/(contractor)/layout.tsx`.

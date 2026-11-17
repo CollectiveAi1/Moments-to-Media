@@ -75,15 +75,21 @@ export default async function JobBoard({ searchParams }: { searchParams: Promise
           {open.length ? 'Try All.' : 'New calls appear here as producers post them. Keep your gear, area and documents current in Profile so you match.'}
         </Empty>
       ) : (
-        shown.map((j) => <JobCard key={j.slot_id} job={j} now={now} />)
+        <div className="c-grid">
+          {shown.map((j) => (
+            <JobCard key={j.slot_id} job={j} now={now} />
+          ))}
+        </div>
       )}
 
       {mine.length ? (
         <section style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <Eyebrow>Your responses</Eyebrow>
-          {mine.map((j) => (
-            <JobCard key={j.slot_id} job={j} now={now} />
-          ))}
+          <div className="c-grid">
+            {mine.map((j) => (
+              <JobCard key={j.slot_id} job={j} now={now} />
+            ))}
+          </div>
         </section>
       ) : null}
     </>

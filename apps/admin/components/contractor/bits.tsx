@@ -58,25 +58,12 @@ export function LockNotice({ children }: { children: ReactNode }) {
   );
 }
 
-/** UI-SPEC `BottomActionBar`: pinned above the tab bar, one action plus helper text. */
+/**
+ * UI-SPEC `BottomActionBar`: on a phone, pinned above the tab bar; on a
+ * desktop, a card in the side column. Styles live in the contractor layout.
+ */
 export function BottomBar({ children }: { children: ReactNode }) {
-  return (
-    <div
-      style={{
-        position: 'sticky',
-        bottom: 96,
-        background: color.bg,
-        borderTop: `1px solid ${color.border}`,
-        padding: '16px 0 12px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 8,
-        zIndex: 5,
-      }}
-    >
-      {children}
-    </div>
-  );
+  return <div className="c-bar">{children}</div>;
 }
 
 export function ProgressBar({ value, total, height = 6, paused = false }: { value: number; total: number; height?: number; paused?: boolean }) {
