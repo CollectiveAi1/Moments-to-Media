@@ -66,10 +66,10 @@ export function BottomBar({ children }: { children: ReactNode }) {
   return <div className="c-bar">{children}</div>;
 }
 
-export function ProgressBar({ value, total, height = 6, paused = false }: { value: number; total: number; height?: number; paused?: boolean }) {
+export function ProgressBar({ value, total, height = 6, paused = false, label = 'Progress' }: { value: number; total: number; height?: number; paused?: boolean; label?: string }) {
   const pct = total > 0 ? Math.min(100, Math.round((value / total) * 100)) : 0;
   return (
-    <div role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} style={{ height, borderRadius: height / 2, background: color.divider, overflow: 'hidden' }}>
+    <div role="progressbar" aria-label={label} aria-valuetext={`${value} of ${total}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} style={{ height, borderRadius: height / 2, background: color.divider, overflow: 'hidden' }}>
       <div style={{ width: `${pct}%`, height: '100%', background: paused ? color.checkboxBorder : color.done }} />
     </div>
   );

@@ -32,7 +32,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
   const order: Portal[] = ['client', 'contractor', 'admin'];
   const { demo } = await searchParams;
   return (
-    <main style={{ minHeight: '100vh', background: color.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+    <main id="main" tabIndex={-1} style={{ minHeight: '100vh', background: color.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
       <div style={{ width: '100%', maxWidth: 980, display: 'flex', flexDirection: 'column', gap: 28, alignItems: 'center' }}>
         <Wordmark />
         <h1 style={{ margin: 0, fontFamily: fonts.heading, fontSize: 30, fontWeight: 600, textAlign: 'center' }}>Sign in</h1>

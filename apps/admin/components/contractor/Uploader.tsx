@@ -199,7 +199,7 @@ export function Uploader({ slotId, disabled }: { slotId: string; disabled?: bool
             </span>
             <span style={{ color: color.textMuted }}>{running ? (isPaused ? 'Paused' : 'Uploading…') : 'Finished'}</span>
           </div>
-          <ProgressBar value={sent} total={total} height={8} paused={isPaused} />
+          <ProgressBar value={sent} total={total} height={8} paused={isPaused} label="Upload progress" />
           {files.map((f, i) => (
             <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, fontSize: 13 }}>
               <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>

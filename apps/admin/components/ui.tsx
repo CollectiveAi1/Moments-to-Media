@@ -11,8 +11,9 @@ export type ButtonVariant = 'admin' | 'primary' | 'secondary' | 'tonal' | 'dange
 export function buttonStyle(variant: ButtonVariant = 'admin', height = 40): CSSProperties {
   const base: CSSProperties = {
     minHeight: Math.max(height, 44),
-    height: Math.max(height, 44),
-    padding: '0 16px',
+    padding: '6px 16px',
+    textAlign: 'center',
+    lineHeight: 1.25,
     borderRadius: height >= 48 ? radius.lg : radius.sm,
     fontFamily: fonts.label,
     fontSize: height >= 48 ? 15 : 14,
@@ -23,7 +24,6 @@ export function buttonStyle(variant: ButtonVariant = 'admin', height = 40): CSSP
     gap: 8,
     textDecoration: 'none',
     cursor: 'pointer',
-    whiteSpace: 'nowrap',
     border: 0,
   };
   switch (variant) {
@@ -32,7 +32,7 @@ export function buttonStyle(variant: ButtonVariant = 'admin', height = 40): CSSP
     case 'primary':
       return { ...base, background: color.primary, color: color.onPrimary };
     case 'secondary':
-      return { ...base, background: 'transparent', color: color.text, border: `1px solid ${color.border}` };
+      return { ...base, background: 'transparent', color: color.text, border: `1px solid ${color.inputBorder}` };
     case 'tonal':
       return { ...base, background: color.surfaceAlt, color: color.text };
     case 'danger':
@@ -224,7 +224,7 @@ export function BackLink({ href, children }: { href: string; children: ReactNode
 export const inputStyle: CSSProperties = {
   minHeight: 44,
   borderRadius: radius.sm,
-  border: `1px solid ${color.border}`,
+  border: `1px solid ${color.inputBorder}`,
   background: color.surface,
   padding: '0 12px',
   fontSize: 15,

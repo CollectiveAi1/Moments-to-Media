@@ -88,7 +88,7 @@ export default async function FootagePage({ searchParams }: { searchParams: Prom
           <form style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
             <label style={{ fontSize: 14, color: color.textMuted, display: 'flex', gap: 8, alignItems: 'center' }}>
               Event
-              <select name="event" defaultValue={eventFilter ?? ''} style={{ minHeight: 40, borderRadius: 8, border: `1px solid ${color.border}`, background: color.surface, padding: '0 8px' }}>
+              <select name="event" defaultValue={eventFilter ?? ''} style={{ minHeight: 44, borderRadius: 8, border: `1px solid ${color.inputBorder}`, background: color.surface, padding: '0 8px' }}>
                 <option value="">All events</option>
                 {(events ?? []).map((e) => (
                   <option key={String(e.id)} value={String(e.id)}>{String(e.title)}</option>

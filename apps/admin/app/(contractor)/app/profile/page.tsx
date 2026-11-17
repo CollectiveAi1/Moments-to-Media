@@ -87,10 +87,10 @@ export default async function Profile({ searchParams }: { searchParams: Promise<
         <Eyebrow>Contact</Eyebrow>
         <ActionForm action={saveProfile} submit="Save" variant="secondary">
           <Field label="Name">
-            <input name="full_name" required defaultValue={String(profile.data?.full_name ?? '')} style={inputStyle} />
+            <input name="full_name" autoComplete="name" required defaultValue={String(profile.data?.full_name ?? '')} style={inputStyle} />
           </Field>
           <Field label="Phone">
-            <input name="phone" type="tel" defaultValue={String(profile.data?.phone ?? '')} style={inputStyle} />
+            <input name="phone" type="tel" autoComplete="tel" defaultValue={String(profile.data?.phone ?? '')} style={inputStyle} />
           </Field>
           <Muted size={13}>Email: {viewer.email}</Muted>
           <Field label="About you">

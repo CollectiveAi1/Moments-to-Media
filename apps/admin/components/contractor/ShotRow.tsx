@@ -119,7 +119,7 @@ export function ShotRow({
       {asking ? (
         <form action={(fd) => { setAsking(false); run(fd); }} style={{ display: 'flex', gap: 8 }}>
           {base('not_possible')}
-          <input name="reason" required autoFocus placeholder="Why not?" style={{ flex: 1, minHeight: 44, borderRadius: 8, border: `1px solid ${color.border}`, padding: '0 10px', fontSize: 14 }} />
+          <input name="reason" required autoFocus placeholder="Why not?" style={{ flex: 1, minHeight: 44, borderRadius: 8, border: `1px solid ${color.inputBorder}`, padding: '0 10px', fontSize: 14 }} />
           <button type="submit" style={{ minHeight: 44, padding: '0 12px', borderRadius: 8, border: 0, background: color.primary, color: color.onPrimary, fontFamily: fonts.label, fontWeight: 600, cursor: 'pointer' }}>
             Save
           </button>

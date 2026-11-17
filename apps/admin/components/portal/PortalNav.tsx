@@ -6,6 +6,7 @@ import { color, fonts, radius } from '@/lib/ui';
 
 const NAV = [
   { href: '/portal', label: 'Overview', match: /^\/portal\/?$/ },
+  { href: '/portal/media', label: 'Media', match: /^\/portal\/media/ },
   { href: '/portal/invoices', label: 'Invoices', match: /^\/portal\/invoices/ },
   { href: '/portal/messages', label: 'Messages', match: /^\/portal\/messages/ },
 ];

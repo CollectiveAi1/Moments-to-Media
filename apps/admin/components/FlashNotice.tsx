@@ -3,15 +3,15 @@
 import { useEffect, useState } from 'react';
 import { color, radius } from '@/lib/ui';
 
-/** Shows the last action's success message, then clears it. */
+/** Shows the last action's success message until it is dismissed. */
 export function FlashNotice({ message }: { message: string | null }) {
   const [shown, setShown] = useState(message);
   useEffect(() => {
     setShown(message);
     if (!message) return;
+    // Stays until dismissed or the next page: a message that vanishes on a
+    // timer can be gone before someone has read it (WCAG 2.2.1).
     document.cookie = 'mtm_flash=; path=/; max-age=0; samesite=lax';
-    const t = window.setTimeout(() => setShown(null), 7000);
-    return () => window.clearTimeout(t);
   }, [message]);
   if (!shown) return null;
   return (
@@ -19,11 +19,11 @@ export function FlashNotice({ message }: { message: string | null }) {
       role="status"
       aria-live="polite"
       style={{
-        position: 'fixed',
-        top: 12,
-        left: '50%',
-        transform: 'translateX(-50%)',
-        zIndex: 50,
+        // In the page flow, not floating over it, so it never covers the
+        // element that has keyboard focus (WCAG 2.4.11).
+        position: 'relative',
+        margin: '12px auto',
+        width: 'fit-content',
         maxWidth: 'min(560px, calc(100vw - 32px))',
         padding: '12px 16px',
         borderRadius: radius.md,
@@ -38,7 +38,7 @@ export function FlashNotice({ message }: { message: string | null }) {
       }}
     >
       <span>{shown}</span>
-      <button type="button" onClick={() => setShown(null)} aria-label="Dismiss" style={{ background: 'transparent', border: 0, color: color.positiveStrong, fontSize: 18, lineHeight: 1, cursor: 'pointer', minWidth: 24, minHeight: 24 }}>
+      <button type="button" onClick={() => setShown(null)} aria-label="Dismiss" style={{ background: 'transparent', border: 0, color: color.positiveStrong, fontSize: 18, lineHeight: 1, cursor: 'pointer', minWidth: 32, minHeight: 32 }}>
         ×
       </button>
     </div>

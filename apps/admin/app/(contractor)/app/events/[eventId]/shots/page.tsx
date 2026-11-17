@@ -72,7 +72,7 @@ export default async function ShotList({ params }: { params: Promise<{ eventId: 
             {mustDone} of {must.length} must-haves
           </span>
         </div>
-        <ProgressBar value={done} total={shots.length} />
+        <ProgressBar value={done} total={shots.length} label="Shots captured" />
       </div>
 
       {status === 'confirmed' ? <Notice tone="warn">Check in from the packet to start ticking shots off.</Notice> : null}

@@ -42,7 +42,7 @@ export function Sidebar({
             <select
               name="org"
               defaultValue={orgId}
-              style={{ minHeight: 40, borderRadius: radius.sm, border: `1px solid ${color.border}`, background: color.surface, padding: '0 8px', fontSize: 13 }}
+              style={{ minHeight: 44, borderRadius: radius.sm, border: `1px solid ${color.inputBorder}`, background: color.surface, padding: '0 8px', fontSize: 13 }}
             >
               {adminOrgs.map((o) => (
                 <option key={o.id} value={o.id}>

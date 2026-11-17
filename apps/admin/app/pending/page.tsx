@@ -25,7 +25,7 @@ export default async function PendingPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: color.bg, display: 'flex', justifyContent: 'center' }}>
-      <main style={{ width: '100%', maxWidth: 720, padding: '32px 20px 64px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <main id="main" tabIndex={-1} style={{ width: '100%', maxWidth: 720, padding: '32px 20px 64px', display: 'flex', flexDirection: 'column', gap: 20 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
           <H1>Thanks for applying</H1>
           <form action="/auth/sign-out" method="post">
@@ -39,8 +39,8 @@ export default async function PendingPage() {
           <H2 size={20}>About you</H2>
           <ActionForm action={saveProfile} submit="Save" variant="secondary">
             <Row>
-              <Field label="Full name"><input name="full_name" required defaultValue={String(profile?.full_name ?? '')} style={inputStyle} /></Field>
-              <Field label="Phone"><input name="phone" type="tel" defaultValue={String(profile?.phone ?? '')} style={inputStyle} /></Field>
+              <Field label="Full name"><input name="full_name" autoComplete="name" required defaultValue={String(profile?.full_name ?? '')} style={inputStyle} /></Field>
+              <Field label="Phone"><input name="phone" type="tel" autoComplete="tel" defaultValue={String(profile?.phone ?? '')} style={inputStyle} /></Field>
             </Row>
             <Field label="Experience and portfolio link"><textarea name="bio" defaultValue={String(profile?.bio ?? '')} style={textareaStyle} /></Field>
           </ActionForm>

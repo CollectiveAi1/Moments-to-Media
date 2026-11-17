@@ -46,7 +46,7 @@ export default async function ContractorLayout({ children }: { children: ReactNo
       <style dangerouslySetInnerHTML={{ __html: layout }} />
       <ContractorSidebar name={viewer.name} email={viewer.email} orgName={viewer.org.name} isAdmin={viewer.isAdmin} />
       <div className="c-main">
-        <main className="c-page">{children}</main>
+        <main id="main" tabIndex={-1} className="c-page">{children}</main>
       </div>
       <div className="c-tabbar">
         <TabBar />

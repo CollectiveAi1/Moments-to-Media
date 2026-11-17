@@ -28,7 +28,7 @@ export default async function PortalLayout({ children }: { children: ReactNode }
           </span>
         </div>
       </header>
-      <main style={{ maxWidth: 1080, margin: '0 auto', padding: '28px 20px 64px', display: 'flex', flexDirection: 'column', gap: 24 }}>{children}</main>
+      <main id="main" tabIndex={-1} style={{ maxWidth: 1080, margin: '0 auto', padding: '28px 20px 64px', display: 'flex', flexDirection: 'column', gap: 24 }}>{children}</main>
     </div>
   );
 }

@@ -24,7 +24,7 @@ export function ProducerFilter({
         style={{
           height: 44,
           borderRadius: radius.sm,
-          border: `1px solid ${color.border}`,
+          border: `1px solid ${color.inputBorder}`,
           background: color.surface,
           padding: '0 10px',
           fontFamily: fonts.label,

@@ -27,8 +27,15 @@ html,body{margin:0}
 body{background:${color.bg};color:${color.text};font-family:${fonts.body};font-size:15px;-webkit-font-smoothing:antialiased}
 a{color:${color.label}}
 a:hover{color:${color.labelHover}}
-:focus-visible{outline:2px solid ${color.label};outline-offset:2px}
-button,input,select{font:inherit}
+:focus-visible{outline:3px solid ${color.text};outline-offset:2px;border-radius:2px}
+button,input,select,textarea{font:inherit}
+input[type=checkbox],input[type=radio]{width:20px;height:20px;accent-color:${color.text};flex:0 0 auto}
+html{scroll-padding-top:16px}
+@media (max-width:959px){html:has(.c-tabbar){scroll-padding-bottom:112px}html:has(.c-bar){scroll-padding-bottom:240px}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.skip-link{position:absolute;left:12px;top:-80px;z-index:100;background:${color.text};color:${color.surface};padding:12px 18px;border-radius:8px;font-weight:700;text-decoration:none}
+.skip-link:focus{top:12px;color:${color.surface}}
 `;
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
@@ -50,6 +57,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <style dangerouslySetInnerHTML={{ __html: base }} />
       </head>
       <body>
+        <a href="#main" className="skip-link">Skip to main content</a>
         {demoWho ? <DemoBanner who={demoWho} /> : null}
         <FlashNotice message={flash} />
         {children}

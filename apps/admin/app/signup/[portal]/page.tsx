@@ -35,7 +35,7 @@ export default async function SignUpPage({ params }: { params: Promise<{ portal:
           {orgs.length > 1 ? (
             <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <span style={{ fontFamily: fonts.label, fontSize: 12, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: color.textMuted }}>Company</span>
-              <select name="org" required style={{ height: 48, borderRadius: radius.sm, border: `1px solid ${color.border}`, background: color.surface, padding: '0 10px', fontSize: 15 }}>
+              <select name="org" required style={{ height: 48, borderRadius: radius.sm, border: `1px solid ${color.inputBorder}`, background: color.surface, padding: '0 10px', fontSize: 15 }}>
                 {orgs.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
               </select>
             </label>

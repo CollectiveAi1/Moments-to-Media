@@ -43,7 +43,11 @@ export default async function PortalHome() {
       </div>
 
       {[...released.keys()].some((id) => (events ?? []).some((e) => String(e.id) === id)) ? (
-        <Notice>Your media is ready. Open the project below to download it.</Notice>
+        <Card highlight>
+          <H2 size={20}>Your media is ready</H2>
+          <Muted>Photos and video from your projects are waiting for you.</Muted>
+          <LinkButton href="/portal/media" variant="primary" height={48}>Go to my media</LinkButton>
+        </Card>
       ) : null}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 20, alignItems: 'start' }}>

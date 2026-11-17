@@ -23,7 +23,7 @@ export function AppShell({
   return (
     <div style={{ minHeight: '100vh', background: color.adminBg, color: color.text, display: 'flex', flexWrap: 'wrap' }}>
       <Sidebar email={email} orgs={orgs} orgId={orgId} isContractor={isContractor} />
-      <main
+      <main id="main" tabIndex={-1}
         style={{
           flex: '999 1 560px',
           minWidth: 0,

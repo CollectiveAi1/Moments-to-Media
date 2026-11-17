@@ -78,16 +78,19 @@ function KanbanColumn({ column }: { column: Column }) {
   );
 }
 
-/** Six columns in a box that scrolls sideways on its own (UI-SPEC section 5). */
+/**
+ * Six columns side by side on a wide screen. UI-SPEC section 5 drew a box
+ * that scrolls sideways; columns now wrap instead, so the board reflows at
+ * 320px wide without two-way scrolling (WCAG 1.4.10).
+ */
 export function Kanban({ columns }: { columns: Column[] }) {
   return (
-    <div style={{ overflowX: 'auto', paddingBottom: 8 }}>
+    <div>
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: `repeat(${columns.length}, minmax(220px, 1fr))`,
+          gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
           gap: 14,
-          minWidth: columns.length * 230,
         }}
       >
         {columns.map((column) => (

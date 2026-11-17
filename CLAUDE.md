@@ -73,15 +73,15 @@ Selection rule: selecting a contractor sends a confirm request (default 12h dead
 
 ## Design tokens (from the approved prototype)
 
-- Background `#F7F4EF`, surface `#FFFDF9`, chip/secondary `#EFEAE2`, border `#D9D2C7`, divider `#E6E0D6`
+- Background `#F7F4EF`, surface `#FFFDF9`, chip/secondary `#EFEAE2`, border `#D9D2C7` (decorative only), input/control border `#857D6E`, divider `#E6E0D6`
 - Text `#1F1F1F`, secondary `#3F3B35`, muted `#6B655A`
-- Primary button `#1F1F1F` with `#FFFDF9` text; admin accent `#7A7059`
-- Done/progress fill `#6E7360`; positive text `#5B6A4A` on `#EEF0E9`
-- Attention text `#9C5F5F`, attention border `#D4A5A5`
+- Primary button `#1F1F1F` with `#FFFDF9` text; admin accent `#70664F` (darkened from the prototype's `#7A7059` to meet WCAG 2.2 AA)
+- Done/progress fill `#666B58`; positive text `#5B6A4A` on `#EEF0E9`
+- Attention text `#935757`, attention border `#D4A5A5`
 - Brand palette reference: `#D9D2C7`, `#B6BCAD`, olive (labeled `#BE937E` on the board, rendered olive), `#1F1F1F`, `#0D0D0D`. Pale sage and pale rose are fills only; they fail contrast as text.
 - Type: Cinzel (headings), Montserrat (labels, buttons), Lato (body)
 - Logos: MM circle monogram (app icon, contractor header), "Moments to Media Content Co." wordmark (admin sidebar)
-- Touch targets at least 44px; text contrast at least 4.5:1
+- Touch targets at least 44px; text contrast at least 4.5:1; WCAG 2.2 AA throughout (docs/accessibility.md)
 
 ## Build order
 

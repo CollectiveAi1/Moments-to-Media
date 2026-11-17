@@ -10,7 +10,7 @@ export default async function NoAccess() {
   if (viewer.isAdmin) redirect('/board');
   if (viewer.isContractor) redirect('/app');
   return (
-    <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+    <main id="main" tabIndex={-1} style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
       <div style={{ ...card(radius.xxl), maxWidth: 440, padding: 28, display: 'flex', flexDirection: 'column', gap: 14 }}>
         <h1 style={{ margin: 0, fontFamily: fonts.heading, fontSize: 26, fontWeight: 600 }}>No access yet</h1>
         <p style={{ margin: 0, fontSize: 15, lineHeight: 1.5, color: color.textBody }}>

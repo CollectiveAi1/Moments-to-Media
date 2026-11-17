@@ -10,7 +10,8 @@ export const color = {
   bg: '#F7F4EF', // app background
   surface: '#FFFDF9', // cards, tab bar, sidebar
   surfaceAlt: '#EFEAE2', // chips, secondary buttons, avatar, active sidebar item
-  border: '#D9D2C7', // card borders, input borders, outlines
+  border: '#D9D2C7', // card borders and dividers (decorative)
+  inputBorder: '#857D6E', // form field and control outlines: 4:1 on surface (WCAG 1.4.11)
   divider: '#E6E0D6', // list row dividers, progress track, disabled fills
   text: '#1F1F1F',
   textSecondary: '#3F3B35',
@@ -18,15 +19,15 @@ export const color = {
   textMuted: '#6B655A',
   primary: '#1F1F1F', // primary buttons
   onPrimary: '#FFFDF9',
-  label: '#7A7059', // eyebrow labels, links, admin accent
+  label: '#70664F', // eyebrow labels, links, admin accent (darkened from #7A7059 for 4.5:1 text contrast, WCAG 1.4.3)
   labelHover: '#5C5443',
-  done: '#6E7360', // checked boxes, booked days, progress fill
-  checkboxBorder: '#A9A399',
+  done: '#666B58', // checked boxes, booked days, progress fill
+  checkboxBorder: '#8A8273', // 3.7:1 on surface (WCAG 1.4.11)
   positive: '#5B6A4A',
   positiveBg: '#EEF0E9',
   positiveBorder: '#C9CEBF',
   positiveStrong: '#3F4A33',
-  attention: '#9C5F5F', // deadlines, warnings, must-have label
+  attention: '#935757', // deadlines, warnings, must-have label (4.5:1 on every background)
   attentionBorder: '#D4A5A5',
   // admin status tags
   dangerBg: '#F6E4E2',

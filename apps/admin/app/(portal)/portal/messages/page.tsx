@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { ActionForm } from '@/components/ActionForm';
-import { Card, Field, H1, Muted, textareaStyle } from '@/components/ui';
+import { Card, Field, H1, Muted, inputStyle, textareaStyle } from '@/components/ui';
 import { requireClient } from '@/lib/context';
 import { dateTime } from '@/lib/format';
 import { myClientIds } from '@/lib/portal/load';
@@ -36,7 +36,7 @@ export default async function PortalMessages() {
           <ActionForm action={sendMessage} submit="Send" variant="primary" reset>
             {clients.length > 1 ? (
               <Field label="About">
-                <select name="client_id" style={{ minHeight: 44 }}>
+                <select name="client_id" style={inputStyle}>
                   {clients.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </Field>
