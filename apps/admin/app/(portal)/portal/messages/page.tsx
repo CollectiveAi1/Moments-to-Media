@@ -23,7 +23,7 @@ export default async function PortalMessages() {
     <>
       <H1>Messages</H1>
       <Card>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 560, overflowY: 'auto' }}>
+        <div tabIndex={0} role="region" aria-label="Message history" style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 560, overflowY: 'auto' }}>
           {(data ?? []).length === 0 ? <Muted>No messages yet. Ask us anything about your booking.</Muted> : null}
           {(data ?? []).map((m) => (
             <div key={String(m.id)} style={{ alignSelf: m.from_client ? 'flex-end' : 'flex-start', maxWidth: '85%', background: m.from_client ? color.positiveBg : color.surfaceAlt, borderRadius: radius.lg, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 4 }}>

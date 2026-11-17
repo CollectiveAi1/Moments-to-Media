@@ -105,7 +105,7 @@ export default async function ClientPage({ params }: { params: Promise<{ clientI
 
         <Card>
           <H2 size={20}>Messages</H2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 520, overflowY: 'auto' }}>
+          <div tabIndex={0} role="region" aria-label="Message history" style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 520, overflowY: 'auto' }}>
             {(messages ?? []).length === 0 ? <Muted>No messages yet. What you write here appears in the client’s portal.</Muted> : null}
             {(messages ?? []).map((m) => (
               <div key={String(m.id)} style={{ alignSelf: m.from_client ? 'flex-start' : 'flex-end', maxWidth: '85%', background: m.from_client ? color.surfaceAlt : color.positiveBg, borderRadius: radius.lg, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 4 }}>

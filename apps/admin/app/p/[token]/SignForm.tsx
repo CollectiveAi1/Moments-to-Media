@@ -91,7 +91,7 @@ export function SignForm({
 
       <section style={{ background: color.surface, border: `1px solid ${color.border}`, borderRadius: radius.xl, padding: 18, display: 'flex', flexDirection: 'column', gap: 12 }}>
         <h2 style={{ margin: 0, fontFamily: fonts.heading, fontSize: 20 }}>Contract</h2>
-        <div style={{ maxHeight: 360, overflowY: 'auto', background: color.bg, borderRadius: radius.lg, padding: 14, fontSize: 14, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{contract}</div>
+        <div tabIndex={0} role="region" aria-label="Contract text" style={{ maxHeight: 360, overflowY: 'auto', background: color.bg, borderRadius: radius.lg, padding: 14, fontSize: 14, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{contract}</div>
         <label style={{ display: 'flex', gap: 10, alignItems: 'center', minHeight: 44, fontSize: 15 }}>
           <input type="checkbox" name="agree" required style={{ width: 20, height: 20 }} /> I have read and agree to this contract.
         </label>
