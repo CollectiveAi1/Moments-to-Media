@@ -6,7 +6,10 @@
  * URLs are deliberately short-lived, so a large upload outlives its first
  * batch and comes back here — that is the normal path, not an error path.
  *
- *   POST { upload_id, part_numbers?: number[], count? }
+ *   POST { upload_id, part_checksums, part_numbers?: number[], count? }
+ *
+ * part_checksums must cover every part this call ends up signing, for the same
+ * reason it does in upload-start.
  */
 
 import { asCaller, type ResumePlan } from "../_shared/db.ts";
@@ -21,7 +24,11 @@ import {
   requireString,
   toResponse,
 } from "../_shared/http.ts";
-import { choosePartsToSign } from "../_shared/parts.ts";
+import {
+  choosePartsToSign,
+  readPartChecksums,
+  requirePartChecksum,
+} from "../_shared/parts.ts";
 import { DEFAULT_PRESIGN_SECONDS, R2 } from "../_shared/r2.ts";
 
 const DEFAULT_COUNT = 100;
@@ -34,6 +41,7 @@ Deno.serve(async (req) => {
     const body = await readJson<Record<string, unknown>>(req);
     const uploadId = requireString(body, "upload_id");
     const count = Math.min(Math.max(optionalInteger(body, "count", DEFAULT_COUNT), 1), MAX_COUNT);
+    const partChecksums = readPartChecksums(body.part_checksums);
 
     const env = readEnv();
     const r2 = new R2(env);
@@ -50,11 +58,20 @@ Deno.serve(async (req) => {
 
     const parts = choosePartsToSign(plan.missing, body.part_numbers, count);
     const presigned = await Promise.all(
-      parts.map(async (part) => ({
-        part_number: part.part_number,
-        bytes: part.bytes,
-        url: await r2.presignPart(plan.storage_key, multipartUploadId, part.part_number),
-      })),
+      parts.map(async (part) => {
+        const checksum = requirePartChecksum(partChecksums, part.part_number);
+        return {
+          part_number: part.part_number,
+          bytes: part.bytes,
+          checksum,
+          url: await r2.presignPart(
+            plan.storage_key,
+            multipartUploadId,
+            part.part_number,
+            checksum,
+          ),
+        };
+      }),
     );
 
     return json({

@@ -527,3 +527,57 @@ Applied 2026-11-13 and verified: all three exist in `public`, `SECURITY
 INVOKER`, `search_path` pinned to the empty string, granted to `service_role`
 and nothing else. An anonymous caller gets `42501 permission denied` rather
 than a not-found, which also proves PostgREST's schema cache is current.
+
+## The checksum R2 can actually produce
+
+The upload pipeline was built to verify a **composite SHA-256**: the digest of
+the concatenated part digests, with the part count suffixed, exactly as S3
+reports it. On 2026-11-16 the first end-to-end run against the real bucket
+showed that R2 cannot produce one. Asked for a per-part SHA-256 on `UploadPart`
+it answers:
+
+```
+501 NotImplemented
+Header 'x-amz-checksum-sha256' with value '...' not implemented
+```
+
+The original client papered over this: it tried the header, caught the 403, and
+retried the PUT without it. The parts landed, so the run looked healthy right up
+to the last step, where `CompleteMultipartUpload` returned 200 and no checksum
+at all and `upload-complete` failed with "R2 did not report a checksum". That
+fallback was the real defect. It turned a refusal into an upload that could
+never be verified, and it only announced itself after every byte had moved.
+
+What R2 does implement for multipart objects, since 2025-07-03, is
+**CRC-64/NVME with checksum type `FULL_OBJECT`**. Proven against the live bucket
+across two real parts: declared `FsVNRbMAn6I=`, and both the completion response
+and the subsequent HEAD returned `FsVNRbMAn6I=`.
+
+It is a better fit than the scheme it replaces, for a reason beyond
+availability. A composite checksum can only be reproduced by a client that
+splits the file exactly as the database planned — `start_upload` re-planning the
+part size silently invalidates a checksum the client already declared, and the
+smoke script carried an explicit guard against precisely that. A full-object
+checksum is the checksum of the file.
+
+What is lost, stated plainly: CRC-64/NVME is a checksum, not a cryptographic
+hash. It detects corruption, which is the failure that actually befalls a 50 GB
+upload over a hotel connection, but it is not collision resistant and is not
+evidence against a deliberately crafted substitution. **Open decision:** whether
+to also store the client's own SHA-256 of the file, in a column R2 never sees,
+so an integrity audit does not depend on the storage provider. That is a
+migration and a client change, and it is not needed for the Phase 1 proof.
+
+Three further things this turned up, all now true:
+
+- Each part's checksum is signed *into* the presigned URL. SigV4 requires every
+  `x-amz-*` header to be signed, so a checksum added at PUT time is
+  `SignatureDoesNotMatch`. The consequence is good: R2 verifies each part as it
+  arrives, so a corrupt part fails immediately rather than at the end.
+- `upload-start` and `upload-presign` now refuse to sign a part the caller has
+  not committed to a checksum for. There is no unchecked path left.
+- Both CRC-64/NVME implementations (TypeScript in `packages/shared`, Python in
+  the smoke script) are checked against the published vector
+  `crc64nvme("123456789") == 0xae8b14860a799888` before use. The first attempt
+  pasted the polynomial in its normal form instead of reflecting it and produced
+  a plausible wrong answer; the vector caught it.

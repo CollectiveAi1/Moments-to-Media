@@ -55,11 +55,12 @@ Deno.serve(async (req) => {
       );
     }
 
-    // ---- assemble, then read back what was actually stored
+    // ---- assemble, declaring what it must turn out to be, then read it back
     const completed = await r2.completeMultipartUpload(
       plan.storage_key,
       multipartUploadId,
       plan.landed,
+      { checksum: plan.checksum, bytes: plan.bytes },
     );
     const head = await r2.headObject(plan.storage_key);
     const checksum = reconcileChecksum(completed.checksum, head.checksum);

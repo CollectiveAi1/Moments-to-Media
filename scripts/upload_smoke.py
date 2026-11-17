@@ -197,13 +197,54 @@ def b64(b):
     return base64.b64encode(b).decode()
 
 
-def composite_checksum(parts):
-    """The checksum S3 and R2 report for a multipart object: the digest of the
-    concatenated part digests, with the part count suffixed. The client can
-    compute it before the first byte moves, which is what lets the database
-    refuse an upload that does not match what was declared."""
-    joined = b"".join(sha256(p) for p in parts)
-    return "%s-%d" % (b64(sha256(joined)), len(parts))
+# CRC-64/NVME. R2 answers 501 NotImplemented for per-part SHA-256, so the
+# composite SHA-256 this script used to declare could never be produced; a
+# completed object simply had no checksum. CRC-64/NVME as a FULL_OBJECT
+# checksum is what R2 does implement for multipart objects, and being one
+# value over the whole file it does not depend on how the file was split.
+
+_CRC64_MASK = 0xFFFFFFFFFFFFFFFF
+
+
+def _reverse64(x):
+    r = 0
+    for i in range(64):
+        r = (r << 1) | ((x >> i) & 1)
+    return r & _CRC64_MASK
+
+
+# The polynomial is catalogued in normal form; a reflected algorithm needs it
+# bit-reversed. Reversing it here instead of pasting the constant is what makes
+# the vector below pass.
+_CRC64_POLY = _reverse64(0xAD93D23594C93659)
+
+_CRC64_TABLE = []
+for _i in range(256):
+    _c = _i
+    for _ in range(8):
+        _c = (_c >> 1) ^ _CRC64_POLY if _c & 1 else _c >> 1
+    _CRC64_TABLE.append(_c & _CRC64_MASK)
+
+
+def crc64nvme(data, crc=_CRC64_MASK):
+    for byte in bytearray(data):
+        crc = _CRC64_TABLE[(crc ^ byte) & 0xFF] ^ (crc >> 8)
+    return crc & _CRC64_MASK
+
+
+def crc64nvme_b64(data):
+    """The base64 form R2 wants in x-amz-checksum-crc64nvme."""
+    value = crc64nvme(data) ^ _CRC64_MASK
+    return b64(value.to_bytes(8, "big"))
+
+
+def check_crc64_implementation():
+    """Against the published vector. A wrong CRC here would fail at R2 with a
+    checksum mismatch and look exactly like corrupted data, so it is worth one
+    line to rule out."""
+    got = crc64nvme(b"123456789") ^ _CRC64_MASK
+    if got != 0xAE8B14860A799888:
+        die("crc64nvme is wrong: got %016x, expected ae8b14860a799888" % got)
 
 
 def slice_parts(buf, size):
@@ -271,20 +312,32 @@ def main():
     token = sign_in(contractor["email"], contractor["password"])
     detail("got an access token")
 
+    check_crc64_implementation()
+
     say("Building a %d MiB file of random bytes" % (FILE_BYTES // 1024 // 1024))
     file_bytes = os.urandom(FILE_BYTES)
     detail("sha256 of the whole file: %s" % b64(sha256(file_bytes)))
 
     say("upload-start")
     declared_parts = slice_parts(file_bytes, EXPECTED_PART_SIZE)
-    declared = composite_checksum(declared_parts)
-    detail("declaring %d parts, checksum %s" % (len(declared_parts), declared))
+    declared = crc64nvme_b64(file_bytes)
+    detail("declaring %d parts, full-object crc64nvme %s"
+           % (len(declared_parts), declared))
+
+    # Every part being signed has to be committed to a checksum up front: the
+    # value goes inside the presigned URL's signature, and R2 checks the part
+    # against it as it arrives.
+    part_checksums = [
+        {"part_number": i + 1, "checksum": crc64nvme_b64(chunk)}
+        for i, chunk in enumerate(declared_parts)
+    ]
 
     status, plan = call_function(token, "upload-start", {
         "slot_id": slot["id"],
         "filename": "smoke-%d.mov" % int(now),
         "bytes": FILE_BYTES,
         "checksum": declared,
+        "part_checksums": part_checksums,
     })
     if status != 201:
         die("upload-start returned %s" % status, plan)
@@ -294,36 +347,32 @@ def main():
     detail("part plan   %s x %s bytes" % (plan["part_count"], plan["part_size_bytes"]))
     detail("presigned   %d URLs" % len(plan["presigned"]))
 
+    # The declared checksum no longer depends on the part size, but the
+    # per-part checksums do, so a surprise here still has to stop the run.
     if plan["part_size_bytes"] != EXPECTED_PART_SIZE:
-        die("the database chose a part size of %s, but the checksum was computed for %s"
+        die("the database chose a part size of %s, but the parts were hashed at %s"
             % (plan["part_size_bytes"], EXPECTED_PART_SIZE))
 
     parts = slice_parts(file_bytes, plan["part_size_bytes"])
 
     say("PUTting the parts straight to R2")
-    header_accepted = None
 
     for p in plan["presigned"]:
         body = parts[p["part_number"] - 1]
         if len(body) != p["bytes"]:
             die("part %s is %d bytes, the plan says %s" % (p["part_number"], len(body), p["bytes"]))
-        part_checksum = b64(sha256(body))
 
-        # The multipart was opened with x-amz-checksum-algorithm: SHA256, so R2
-        # wants a checksum per part. The URL is query-signed over the host
-        # alone, so an extra header may or may not be accepted. Try it, fall
-        # back, and say which worked -- that answer is the point of this run.
-        st, hdrs, raw = request(p["url"], "PUT", {"x-amz-checksum-sha256": part_checksum}, body)
-        if st >= 300:
-            if header_accepted is None:
-                detail("part %s with checksum header -> %s; retrying without it"
-                       % (p["part_number"], st))
-                detail("R2 said: %s" % raw.decode(errors="replace")[:200])
-            header_accepted = False
-            st, hdrs, raw = request(p["url"], "PUT", {}, body)
-        elif header_accepted is None:
-            header_accepted = True
+        # The server signed this exact header into the URL and echoed the value
+        # it signed. Sending anything else is SignatureDoesNotMatch, and there
+        # is deliberately no fallback: a part R2 did not check is a part this
+        # run cannot claim to have verified.
+        part_checksum = p["checksum"]
+        if part_checksum != crc64nvme_b64(body):
+            die("part %s: the server signed a checksum this client did not compute"
+                % p["part_number"])
 
+        st, hdrs, raw = request(
+            p["url"], "PUT", {"x-amz-checksum-crc64nvme": part_checksum}, body)
         if st >= 300:
             die("part %s PUT -> %s" % (p["part_number"], st), raw.decode(errors="replace"))
 
@@ -331,16 +380,19 @@ def main():
         if not etag:
             die("part %s landed but R2 returned no ETag" % p["part_number"])
 
+        echoed = hdrs.get("x-amz-checksum-crc64nvme")
+        if echoed and echoed != part_checksum:
+            die("part %s: R2 stored checksum %s, not %s"
+                % (p["part_number"], echoed, part_checksum))
+
         rpc_as_caller(token, "record_upload_part", {
             "p_upload": plan["upload_id"],
             "p_part_number": p["part_number"],
             "p_etag": etag,
-            "p_checksum": hdrs.get("x-amz-checksum-sha256") or part_checksum,
+            "p_checksum": part_checksum,
         })
-        detail("part %s/%s ok  etag %s" % (p["part_number"], plan["part_count"], etag))
-
-    detail("per-part checksum header was %s"
-           % ("accepted" if header_accepted else "rejected (fell back without it)"))
+        detail("part %s/%s ok  etag %s  checksum verified by R2"
+               % (p["part_number"], plan["part_count"], etag))
 
     say("upload_resume_plan")
     resume = rpc_as_caller(token, "upload_resume_plan", {"p_upload": plan["upload_id"]})
