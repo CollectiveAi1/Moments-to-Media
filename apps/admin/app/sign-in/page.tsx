@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { Wordmark } from '@/components/Wordmark';
 import { createClient } from '@/lib/supabase/server';
 import { card, color, fonts, radius } from '@/lib/ui';
+import { HashSession } from './HashSession';
 import { SignInForm } from './SignInForm';
 
 export const metadata: Metadata = { title: 'Sign in' };
@@ -11,7 +12,7 @@ export const metadata: Metadata = { title: 'Sign in' };
 // URL is ever echoed onto the page.
 const NOTICES: Record<string, string> = {
   link: 'That sign-in link has expired or was already used. Ask for a new one.',
-  device: 'Open the sign-in link in the same browser you asked for it in.',
+  device: 'That link was made for another browser. Ask for a new one here; new links work on any device.',
 };
 
 export default async function SignInPage({
@@ -23,7 +24,7 @@ export default async function SignInPage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (user) redirect('/board');
+  if (user) redirect('/');
 
   const { error } = await searchParams;
   const notice = error ? (NOTICES[error] ?? NOTICES.link ?? null) : null;
@@ -59,6 +60,7 @@ export default async function SignInPage({
             Sign in with the email you were invited with. There is no password: we send you a link.
           </p>
         </div>
+        <HashSession />
         <SignInForm notice={notice} />
       </div>
     </main>

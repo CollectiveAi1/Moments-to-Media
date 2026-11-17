@@ -1,16 +1,25 @@
-import type { Card, Column } from '@/lib/board/build';
+import Link from 'next/link';
+import type { Card, Column, EventStatus } from '@/lib/board/build';
 import { card as cardStyle, color, radius, toneColor } from '@/lib/ui';
 
 /**
  * UI-SPEC section 3, `EventCard`. A card that is waiting on the producer gets
- * the label-coloured border. It is not a link yet: the staffing and review
- * pages it should open do not exist, and a link that goes nowhere is worse
- * than no link.
+ * the label-coloured border and opens where that decision is made: staffing
+ * for interest to review, the footage queue for uploads to approve.
  */
-function EventCard({ card }: { card: Card }) {
+function hrefFor(card: Card, status: EventStatus): string {
+  if (card.actionable && status === 'staffing') return `/events/${card.id}/staffing`;
+  if (card.actionable && status === 'uploaded') return '/footage';
+  return `/events/${card.id}`;
+}
+
+function EventCard({ card, status }: { card: Card; status: EventStatus }) {
   return (
-    <div
+    <Link
+      href={hrefFor(card, status)}
       style={{
+        textDecoration: 'none',
+        color: color.text,
         ...cardStyle(radius.md),
         borderColor: card.actionable ? color.label : color.border,
         padding: 12,
@@ -33,7 +42,7 @@ function EventCard({ card }: { card: Card }) {
           {line.text}
         </span>
       ))}
-    </div>
+    </Link>
   );
 }
 
@@ -55,7 +64,7 @@ function KanbanColumn({ column }: { column: Column }) {
         <span aria-label={`${column.count} events`}>{column.count}</span>
       </h2>
       {column.cards.map((c) => (
-        <EventCard key={c.id} card={c} />
+        <EventCard key={c.id} card={c} status={column.status} />
       ))}
       {column.count === 0 ? (
         <span style={{ fontSize: 12, color: color.textMuted, padding: '4px 2px' }}>None</span>

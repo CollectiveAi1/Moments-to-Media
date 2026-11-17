@@ -58,16 +58,51 @@ rather than in the UI.
   for SVG or PDF originals before the first TestFlight build (spec section 2).
 ## Built so far
 
-| Screen | State |
-| --- | --- |
-| Admin sign-in | Built. Emailed link, no password. |
-| Operations board 5.1 | Built against live data, with loading, empty and error states. Cards that need the producer are highlighted but are not links yet, because the Staffing and Review pages they open do not exist. "New event" is disabled until the event builder exists. No Realtime yet: the board is current as of the last page load. |
-| Everything else | Not built. |
+Every screen in the spec, against live data, with loading, empty and error
+states. QA: `scripts/qa/pass.sh` (typecheck, lint, unit tests, build, and a
+52-step end-to-end run of one event's whole life as three real signed-in roles).
 
-Where the built board differs from the drawing, on purpose:
+| Area | Screens |
+| --- | --- |
+| Admin | Sign-in · Board · Events (list, builder, event page: details, slots, brief, deliverables, shot list, contacts, client, history, status moves) · Staffing (index, per-event with ranked candidates, invite, select, pass, expire, cancel) · Contractors (roster, invitations, contractor page with document review) · Footage and review (queue, library, review with ratings, approve, request changes) · Payouts · Announcements · Settings |
+| Contractor | Home · Jobs · Open call detail · Event packet (check-in with location, running late) · Shot list · Uploads (browser upload straight to R2) · Profile (contact, skills, coverage, gear, availability calendar, documents) · Earnings |
+
+The contractor app is a phone-width web view in the same Next.js app, at
+`/app`. **This is in addition to the native Expo app, not instead of it**:
+background uploads of whole cards need the native module, so the locked
+decision stands. The web view lets a contractor do everything else from any
+phone today. Someone who is both owner and contractor switches with the
+"Contractor view" link in the sidebar.
+
+### What does not work yet, and why
+
+- **Uploading from a browser needs one bucket setting.** The R2 bucket has no
+  CORS rule, so browsers are refused before the first byte. The upload
+  credentials cannot change bucket settings (by design: they are object-only),
+  so it is a dashboard step: R2 → `moments-to-media-footage` → Settings → CORS
+  policy, allowing PUT and GET from the app's origins, the
+  `x-amz-checksum-crc64nvme` and `content-type` headers, and exposing `ETag`.
+  The uploader says exactly this if it happens.
+- **Stripe Connect is not connected.** Payouts move through every state; the
+  owner records Sent and Paid by hand. "Open Stripe Express" is disabled.
+- **Notifications are not fanned out.** Running late and off-site check-ins
+  reach the producer on the board; nothing is pushed or texted, and
+  announcements are read on the contractor's home screen rather than sent.
+- **No video previews** (PRD v1.1); review lists files with downloads.
+- **Offline packet cache** and **Realtime** are not built; the board and shot
+  list refresh every 20–30 seconds instead.
+- **Producers cannot read organization settings** (owner-only by RLS), so for
+  a producer the required-documents check in candidate ranking assumes none.
+
+### Where the built board differs from the drawing, on purpose
 
 - The Producer select is 44px tall, not 40. The spec's own rule that touch
   targets are at least 44px wins over the prototype's inline height.
 - A staffing card can show two lines rather than one, when two different slots
   each need something.
 - "Active events" in the header does not count completed events.
+- Selecting a candidate has no Undo: the assignment state machine has no move
+  from `selected` back to `interested`. "Expire selection" reopens the slot.
+- A selected contractor cannot Decline in the app (the state machine allows
+  only confirm or expire from `selected`); the screen says to tell the
+  producer instead.

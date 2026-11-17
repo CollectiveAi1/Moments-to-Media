@@ -1,7 +1,6 @@
 'use server';
 
-import { headers } from 'next/headers';
-import { createClient } from '@/lib/supabase/server';
+import { sendSignInLink } from '@/lib/supabase/mailer';
 
 export interface SignInState {
   status: 'idle' | 'sent' | 'error';
@@ -11,34 +10,20 @@ export interface SignInState {
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-/** Where the emailed link should land: this deployment, whatever its address. */
-async function origin(): Promise<string> {
-  const h = await headers();
-  const fromHeader = h.get('origin');
-  if (fromHeader) return fromHeader;
-  const host = h.get('x-forwarded-host') ?? h.get('host') ?? 'localhost:3000';
-  const proto = h.get('x-forwarded-proto') ?? (host.startsWith('localhost') ? 'http' : 'https');
-  return `${proto}://${host}`;
-}
-
-export async function sendSignInLink(_previous: SignInState, form: FormData): Promise<SignInState> {
+export async function sendSignInLinkAction(_previous: SignInState, form: FormData): Promise<SignInState> {
   const email = String(form.get('email') ?? '').trim().toLowerCase();
 
   if (!EMAIL.test(email)) {
     return { status: 'error', message: 'Enter the email address you were invited with.', email };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
-    options: { emailRedirectTo: `${await origin()}/auth/callback` },
-  });
+  const { error } = await sendSignInLink(email);
 
   if (error) {
-    // Rate limits are the realistic failure here and worth saying plainly.
+    // The mailer allows only so many emails an hour for the whole project.
     const message =
       error.status === 429
-        ? 'Too many sign-in emails were requested. Wait a minute and try again.'
+        ? 'Too many sign-in emails were sent recently. Wait a while (up to an hour) and try once more.'
         : `The sign-in email could not be sent: ${error.message}`;
     return { status: 'error', message, email };
   }
@@ -47,7 +32,7 @@ export async function sendSignInLink(_previous: SignInState, form: FormData): Pr
   // be used to find out who has an account.
   return {
     status: 'sent',
-    message: `If ${email} has been invited, a sign-in link is on its way. Open it on this device.`,
+    message: `If ${email} has been invited, a sign-in link is on its way. It works on any device.`,
     email,
   };
 }

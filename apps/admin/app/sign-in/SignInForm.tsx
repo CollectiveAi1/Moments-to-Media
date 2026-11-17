@@ -2,7 +2,7 @@
 
 import { useActionState } from 'react';
 import { color, fonts, radius } from '@/lib/ui';
-import { sendSignInLink, type SignInState } from './actions';
+import { sendSignInLinkAction as sendSignInLink, type SignInState } from './actions';
 
 const initial: SignInState = { status: 'idle', message: '', email: '' };
 

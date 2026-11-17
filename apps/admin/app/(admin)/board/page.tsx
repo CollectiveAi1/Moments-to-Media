@@ -1,11 +1,13 @@
 import type { Metadata } from 'next';
 import { AttentionStrip } from '@/components/AttentionStrip';
+import { AutoRefresh } from '@/components/AutoRefresh';
 import { Kanban } from '@/components/Kanban';
 import { PageHeader } from '@/components/PageHeader';
 import { ProducerFilter } from '@/components/ProducerFilter';
-import { buildBoard, formatDay } from '@/lib/board/build';
+import { buildBoard, formatDay, type AttentionItem } from '@/lib/board/build';
+import { LinkButton } from '@/components/ui';
 import { loadBoard } from '@/lib/board/query';
-import { createClient } from '@/lib/supabase/server';
+import { requireAdmin } from '@/lib/context';
 import { card, color, fonts, radius } from '@/lib/ui';
 
 export const metadata: Metadata = { title: 'Operations board' };
@@ -29,8 +31,24 @@ export default async function BoardPage({
   const { producer } = await searchParams;
   const producerId = producer && UUID.test(producer) ? producer : null;
 
-  const supabase = await createClient();
-  const { events, names, producers } = await loadBoard(supabase, producerId);
+  const viewer = await requireAdmin();
+  const { events, names, producers } = await loadBoard(viewer.supabase, producerId);
+
+  // Running late and off-site check-ins are sent to the producer as
+  // notifications by the database; the last twelve hours of them belong here.
+  const since = new Date(Date.now() - 12 * 3_600_000).toISOString();
+  const { data: notices } = await viewer.supabase
+    .from('notifications')
+    .select('id, type, payload, created_at')
+    .in('type', ['running_late', 'checked_in_outside_radius'])
+    .gte('created_at', since)
+    .order('created_at', { ascending: false });
+  const live: AttentionItem[] = (notices ?? []).map((n) => {
+    const p = (n.payload ?? {}) as { contractor_name?: string; event_title?: string; eta_minutes?: number; distance_m?: number };
+    return n.type === 'running_late'
+      ? { key: `late-${n.id}`, tone: 'warn', text: `${p.contractor_name ?? 'A contractor'} running late · ${p.event_title ?? ''}, ETA ${p.eta_minutes ?? '?'} min` }
+      : { key: `far-${n.id}`, tone: 'danger', text: `${p.contractor_name ?? 'A contractor'} checked in ${p.distance_m ?? '?'} m from the venue · ${p.event_title ?? ''}` };
+  });
 
   const now = new Date();
   const board = buildBoard(events, now, (id) => names.get(id) ?? 'A contractor');
@@ -39,30 +57,14 @@ export default async function BoardPage({
 
   return (
     <>
+      <AutoRefresh seconds={30} />
       <PageHeader
         title="Operations board"
         subtitle={`${today} · ${active}`}
         actions={
           <>
             <ProducerFilter producers={producers} selected={producerId} />
-            <button
-              type="button"
-              disabled
-              title="The event builder is not built yet"
-              style={{
-                height: 44,
-                padding: '0 16px',
-                borderRadius: radius.sm,
-                border: 0,
-                background: color.divider,
-                color: color.textMuted,
-                fontFamily: fonts.label,
-                fontSize: 14,
-                fontWeight: 600,
-              }}
-            >
-              New event
-            </button>
+            <LinkButton href="/events/new">New event</LinkButton>
           </>
         }
       />
@@ -75,12 +77,12 @@ export default async function BoardPage({
           <p style={{ margin: 0, fontSize: 15, lineHeight: 1.5, color: color.textBody }}>
             {producerId
               ? 'Choose Everyone to see the whole board.'
-              : 'Events appear here as soon as one is created. The event builder is the next screen to be built.'}
+              : 'Events appear here as soon as one is created. Start one with New event.'}
           </p>
         </section>
       ) : (
         <>
-          <AttentionStrip items={board.attention} />
+          <AttentionStrip items={[...live, ...board.attention]} />
           <Kanban columns={board.columns} />
         </>
       )}

@@ -1,32 +1,22 @@
 import Link from 'next/link';
-import type { CSSProperties } from 'react';
+import { switchOrg } from '@/app/actions';
+import type { OrgMembership } from '@/lib/context';
 import { color, fonts, radius } from '@/lib/ui';
+import { SidebarNav } from './SidebarNav';
 import { Wordmark } from './Wordmark';
 
-/**
- * The seven entries the prototype draws. Only the board exists so far; the
- * rest are shown, because the navigation is part of the approved design, but
- * they are not links and say so to anyone using a screen reader.
- */
-const NAV: ReadonlyArray<{ label: string; href: string | null }> = [
-  { label: 'Board', href: '/board' },
-  { label: 'Staffing', href: null },
-  { label: 'Contractors', href: null },
-  { label: 'Footage and review', href: null },
-  { label: 'Payouts', href: null },
-  { label: 'Announcements', href: null },
-  { label: 'Settings', href: null },
-];
-
-const item: CSSProperties = {
-  padding: '10px 12px',
-  borderRadius: radius.sm,
-  fontSize: 14,
-  textDecoration: 'none',
-  display: 'block',
-};
-
-export function Sidebar({ current, email }: { current: string; email: string }) {
+export function Sidebar({
+  email,
+  orgs,
+  orgId,
+  isContractor,
+}: {
+  email: string;
+  orgs: OrgMembership[];
+  orgId: string;
+  isContractor: boolean;
+}) {
+  const adminOrgs = orgs.filter((o) => o.roles.includes('owner') || o.roles.includes('producer'));
   return (
     <nav
       aria-label="Admin"
@@ -41,73 +31,72 @@ export function Sidebar({ current, email }: { current: string; email: string }) 
         gap: 4,
       }}
     >
-      <div style={{ margin: '0 8px 24px' }}>
+      <Link href="/board" style={{ margin: '0 8px 20px', display: 'block' }} aria-label="Operations board">
         <Wordmark />
-      </div>
+      </Link>
 
-      {NAV.map(({ label, href }) => {
-        if (href === null) {
-          return (
-            <span
-              key={label}
-              aria-disabled="true"
-              title="Not built yet"
-              style={{ ...item, color: color.textMuted, fontWeight: 500 }}
+      {adminOrgs.length > 1 ? (
+        <form action={switchOrg} style={{ margin: '0 4px 12px', display: 'flex', gap: 6 }}>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, fontSize: 12, color: color.textMuted }}>
+            Organization
+            <select
+              name="org"
+              defaultValue={orgId}
+              style={{ minHeight: 40, borderRadius: radius.sm, border: `1px solid ${color.border}`, background: color.surface, padding: '0 8px', fontSize: 13 }}
             >
-              {label}
-            </span>
-          );
-        }
-        const active = current === href;
-        return (
+              {adminOrgs.map((o) => (
+                <option key={o.id} value={o.id}>
+                  {o.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button type="submit" style={{ alignSelf: 'flex-end', minHeight: 40, padding: '0 10px', borderRadius: radius.sm, border: `1px solid ${color.border}`, background: 'transparent', fontSize: 13, cursor: 'pointer' }}>
+            Go
+          </button>
+        </form>
+      ) : null}
+
+      <SidebarNav />
+
+      <div style={{ marginTop: 'auto', padding: '24px 12px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {isContractor ? (
           <Link
-            key={label}
-            href={href}
-            aria-current={active ? 'page' : undefined}
+            href="/app"
             style={{
-              ...item,
-              background: active ? color.surfaceAlt : 'transparent',
-              color: active ? color.text : color.textMuted,
-              fontWeight: active ? 600 : 500,
+              minHeight: 44,
+              display: 'flex',
+              alignItems: 'center',
+              fontFamily: fonts.label,
+              fontSize: 13,
+              fontWeight: 600,
+              color: color.label,
             }}
           >
-            {label}
+            Contractor view →
           </Link>
-        );
-      })}
-
-      <form
-        action="/auth/sign-out"
-        method="post"
-        style={{
-          marginTop: 'auto',
-          paddingTop: 24,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 8,
-          padding: '24px 12px 0',
-        }}
-      >
+        ) : null}
         <span style={{ fontSize: 12, color: color.textMuted, overflowWrap: 'anywhere' }}>{email}</span>
-        <button
-          type="submit"
-          style={{
-            alignSelf: 'flex-start',
-            minHeight: 44,
-            padding: '0 12px',
-            borderRadius: radius.sm,
-            border: `1px solid ${color.border}`,
-            background: 'transparent',
-            color: color.text,
-            fontFamily: fonts.label,
-            fontSize: 13,
-            fontWeight: 600,
-            cursor: 'pointer',
-          }}
-        >
-          Sign out
-        </button>
-      </form>
+        <form action="/auth/sign-out" method="post">
+          <button
+            type="submit"
+            style={{
+              minHeight: 44,
+              padding: '0 12px',
+              borderRadius: radius.sm,
+              border: `1px solid ${color.border}`,
+              background: 'transparent',
+              color: color.text,
+              fontFamily: fonts.label,
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            Sign out
+          </button>
+        </form>
+      </div>
     </nav>
   );
 }

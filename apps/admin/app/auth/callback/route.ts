@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
       await claimInvitations(supabase);
-      return NextResponse.redirect(`${origin}/board`);
+      return NextResponse.redirect(`${origin}/`);
     }
     // The code is bound to the browser that asked for it.
     const reason = /verifier/i.test(error.message) ? 'device' : 'link';
@@ -48,9 +48,13 @@ export async function GET(request: NextRequest) {
     });
     if (!error) {
       await claimInvitations(supabase);
-      return NextResponse.redirect(`${origin}/board`);
+      return NextResponse.redirect(`${origin}/`);
     }
   }
 
+  // Links sent with the implicit flow land here with the session in the URL
+  // fragment, which a server never sees. The fragment survives this redirect
+  // and the sign-in page completes it in the browser.
+  if (!code && !tokenHash) return NextResponse.redirect(`${origin}/sign-in`);
   return NextResponse.redirect(`${origin}/sign-in?error=link`);
 }
