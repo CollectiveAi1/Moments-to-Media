@@ -171,6 +171,40 @@ export const PAYOUT_STATUS: Record<string, { label: string; tone: Tone }> = {
   reversed: { label: 'Reversed', tone: 'danger' },
 };
 
+export const LEAD_STATUS: Record<string, { label: string; tone: Tone }> = {
+  new: { label: 'New', tone: 'warn' },
+  contacted: { label: 'Contacted', tone: 'label' },
+  proposal_sent: { label: 'Proposal sent', tone: 'label' },
+  booked: { label: 'Booked', tone: 'positive' },
+  lost: { label: 'Lost', tone: 'muted' },
+};
+
+export const PROPOSAL_STATUS: Record<string, { label: string; tone: Tone }> = {
+  draft: { label: 'Draft', tone: 'muted' },
+  sent: { label: 'Sent', tone: 'label' },
+  viewed: { label: 'Viewed', tone: 'warn' },
+  accepted: { label: 'Signed', tone: 'positive' },
+  declined: { label: 'Declined', tone: 'danger' },
+  void: { label: 'Void', tone: 'muted' },
+};
+
+export const INVOICE_STATUS: Record<string, { label: string; tone: Tone }> = {
+  draft: { label: 'Draft', tone: 'muted' },
+  open: { label: 'Open', tone: 'warn' },
+  partially_paid: { label: 'Partly paid', tone: 'label' },
+  paid: { label: 'Paid', tone: 'positive' },
+  void: { label: 'Void', tone: 'muted' },
+};
+
+export const PAYMENT_METHOD: Record<string, string> = {
+  card: 'Card',
+  ach: 'Bank (ACH)',
+  check: 'Check',
+  cash: 'Cash',
+  bank_transfer: 'Bank transfer / Zelle',
+  other: 'Other',
+};
+
 /** Statuses that mean the contractor is booked on the slot. */
 export const COMMITTED = [
   'confirmed', 'checked_in', 'checked_out', 'uploaded', 'changes_requested', 'approved', 'paid',

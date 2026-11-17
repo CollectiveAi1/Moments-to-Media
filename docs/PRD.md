@@ -26,7 +26,7 @@ The app ships to Moments to Media as an internal tool first. It is built multi-t
 
 ### Not in v1
 
-- A client-facing portal (the data model leaves room for it; see Scope)
+- ~~A client-facing portal~~ Built early at Moments to Media's request, 2026-11-17: inquiries, proposals with e-signature, invoices and the client portal. See docs/client-portal.md and docs/honeybook-comparison.md.
 - Editing and post-production workflow
 - Payroll for W-2 employees
 

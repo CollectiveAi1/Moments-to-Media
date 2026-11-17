@@ -4,6 +4,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { Card, Field, H2, LinkButton, Muted, Notice, Row, StatusText, Tag, inputStyle } from '@/components/ui';
 import { requireAdmin } from '@/lib/context';
 import { color } from '@/lib/ui';
+import { setClientPayments } from '../client-actions';
 import { removeMember, saveOrganization, updateMember } from './actions';
 
 export const metadata: Metadata = { title: 'Settings' };
@@ -28,7 +29,7 @@ export default async function SettingsPage() {
   const viewer = await requireAdmin();
   const db = viewer.supabase;
   const [{ data: org }, { data: members }] = await Promise.all([
-    db.from('organizations').select('name, slug, settings, in_app_payments_enabled, stripe_account_id').eq('id', viewer.org.id).maybeSingle(),
+    db.from('organizations').select('name, slug, settings, in_app_payments_enabled, stripe_account_id, client_payments_enabled').eq('id', viewer.org.id).maybeSingle(),
     db.from('memberships').select('id, user_id, role, status, created_at').eq('org_id', viewer.org.id).order('role'),
   ]);
   const ids = [...new Set((members ?? []).map((m) => String(m.user_id)))];
@@ -85,6 +86,23 @@ export default async function SettingsPage() {
           </Muted>
         </Card>
       )}
+
+      {viewer.isOwner && org ? (
+        <Card>
+          <H2 size={20}>Client payments</H2>
+          <Muted>
+            Clients pay invoices from their portal. With card payments off, they see what they owe and you record checks, cash and transfers on each
+            invoice. Card payments go through Stripe Checkout on Moments to Media’s own Stripe account, and need its keys added to the server first
+            (docs/client-portal.md).
+          </Muted>
+          <ActionForm action={setClientPayments} submit="Save">
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, minHeight: 44, fontSize: 14 }}>
+              <input type="checkbox" name="enabled" defaultChecked={Boolean(org.client_payments_enabled)} /> Let clients pay invoices by card
+            </label>
+          </ActionForm>
+          <Muted size={13}>Public inquiry form: /inquire/{String(org.slug)}</Muted>
+        </Card>
+      ) : null}
 
       <Card>
         <H2 size={20}>People</H2>

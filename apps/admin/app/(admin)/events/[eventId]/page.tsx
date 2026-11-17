@@ -12,6 +12,7 @@ import {
 } from '@/lib/format';
 import { isProducerish, orgPeople } from '@/lib/org';
 import { color } from '@/lib/ui';
+import { releaseMedia } from '../../client-actions';
 import { EventFields } from '../EventFields';
 import {
   addClientContact, addContact, addDeliverable, addShot, addSlot, deleteClientContact, deleteContact,
@@ -80,6 +81,12 @@ export default async function EventPage({
       : Promise.resolve({ data: [] as Array<Record<string, unknown>> }),
     db.from('activity_log').select('action, change, created_at, actor_id').eq('entity_id', eventId).order('created_at', { ascending: false }).limit(8),
   ]);
+  const [releaseRes, invoiceRes] = await Promise.all([
+    db.from('media_releases').select('released_at, message').eq('event_id', eventId).maybeSingle(),
+    db.from('invoices').select('id, number, status, total_cents, paid_cents').eq('event_id', eventId).neq('status', 'void'),
+  ]);
+  const release = releaseRes.data;
+  const eventInvoices = invoiceRes.data ?? [];
 
   const zone = String(event.time_zone);
   const slots = (slotsRes.data ?? []) as unknown as Slot[];
@@ -91,6 +98,7 @@ export default async function EventPage({
   const status = EVENT_STATUS[String(event.status)] ?? { label: String(event.status), tone: 'muted' as const };
   const clientName = clients.find((c) => c.id === event.client_id)?.name;
   const live = slots.filter((s) => s.status !== 'cancelled');
+  const approvedCount = slots.flatMap((s) => s.assignments).filter((a) => a.status === 'approved' || a.status === 'paid').length;
   const filled = live.filter((s) => s.assignments.some((a) => isCommitted(a.status))).length;
   const editable = !['complete', 'cancelled'].includes(String(event.status));
 
@@ -437,6 +445,36 @@ export default async function EventPage({
           <Muted>This event is {status.label.toLowerCase()} and can no longer be edited.</Muted>
         )}
       </Card>
+
+      {/* ------------------------------------------------------- the client */}
+      {event.client_id ? (
+        <Card>
+          <H2>Client delivery and billing</H2>
+          {eventInvoices.map((i) => (
+            <ListRow
+              key={String(i.id)}
+              label={<Link href={`/invoices/${String(i.id)}`}>Invoice {String(i.number)}</Link>}
+              value={<StatusText>{money(Number(i.paid_cents))} of {money(Number(i.total_cents))} paid</StatusText>}
+            />
+          ))}
+          {eventInvoices.length === 0 ? (
+            <Link href={`/invoices/new?client=${String(event.client_id)}`} style={{ fontSize: 14 }}>Invoice {clientName} for this event →</Link>
+          ) : null}
+          {release ? (
+            <Muted>Media released to {clientName} {dateTime(String(release.released_at), zone)}. New approvals appear in their portal automatically.</Muted>
+          ) : approvedCount === 0 ? (
+            <Muted>Once you approve a contractor’s footage you can release it to {clientName}’s portal.</Muted>
+          ) : null}
+          {approvedCount > 0 ? (
+            <ActionForm action={releaseMedia} submit={release ? 'Update the note' : `Release approved media to ${clientName ?? 'the client'}`} variant={release ? 'secondary' : 'admin'}>
+              <input type="hidden" name="event_id" value={eventId} />
+              <Field label="Note to the client (optional)">
+                <input name="message" defaultValue={String(release?.message ?? '')} style={inputStyle} placeholder="Your highlight film is ready!" />
+              </Field>
+            </ActionForm>
+          ) : null}
+        </Card>
+      ) : null}
 
       {/* ---------------------------------------------------------- history */}
       <Card>

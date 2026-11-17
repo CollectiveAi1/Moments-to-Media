@@ -23,6 +23,8 @@ export interface Viewer {
   isOwner: boolean;
   isAdmin: boolean;
   isContractor: boolean;
+  /** Signs in to the client portal for one or more of the org's clients. */
+  isClient: boolean;
 }
 
 export const ORG_COOKIE = 'mtm_org';
@@ -73,19 +75,31 @@ export const getViewer = cache(async (): Promise<Viewer> => {
     isOwner: roles.includes('owner'),
     isAdmin: roles.includes('owner') || roles.includes('producer'),
     isContractor: roles.includes('contractor'),
+    isClient: roles.includes('client'),
   };
 });
 
 /** For admin pages: anyone else is sent where they belong. */
 export async function requireAdmin(): Promise<Viewer & { org: OrgMembership }> {
   const viewer = await getViewer();
-  if (!viewer.org || !viewer.isAdmin) redirect(viewer.isContractor ? '/app' : '/no-access');
+  if (!viewer.org || !viewer.isAdmin) redirect(viewer.isContractor ? '/app' : viewer.isClient ? '/portal' : '/no-access');
   return viewer as Viewer & { org: OrgMembership };
 }
 
 /** For contractor pages. An owner who also works shifts holds both roles. */
 export async function requireContractor(): Promise<Viewer & { org: OrgMembership }> {
   const viewer = await getViewer();
-  if (!viewer.org || !viewer.isContractor) redirect(viewer.isAdmin ? '/board' : '/no-access');
+  if (!viewer.org || !viewer.isContractor) redirect(viewer.isAdmin ? '/board' : viewer.isClient ? '/portal' : '/no-access');
   return viewer as Viewer & { org: OrgMembership };
+}
+
+/**
+ * For client portal pages. Picks an organization where the person is a
+ * client, even when the console cookie points somewhere they are staff.
+ */
+export async function requireClient(): Promise<Viewer & { org: OrgMembership }> {
+  const viewer = await getViewer();
+  const org = viewer.org?.roles.includes('client') ? viewer.org : viewer.orgs.find((o) => o.roles.includes('client'));
+  if (!org) redirect(viewer.isAdmin ? '/board' : viewer.isContractor ? '/app' : '/no-access');
+  return { ...viewer, org, isClient: true } as Viewer & { org: OrgMembership };
 }

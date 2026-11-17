@@ -2,7 +2,10 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { supabaseAnonKey, supabaseUrl } from './lib/env';
 
-const PUBLIC_PATHS = ['/sign-in', '/auth/'];
+// The inquiry form and proposal links are opened by people with no account.
+// They reach the database only through functions made for them (see
+// supabase/migrations/20261118000100_client_side.sql).
+const PUBLIC_PATHS = ['/sign-in', '/auth/', '/inquire/', '/p/'];
 
 /**
  * Runs before every page. Two jobs: keep the session cookie fresh, and send
