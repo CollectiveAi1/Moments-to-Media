@@ -7,7 +7,7 @@ import { getViewer } from '@/lib/context';
 import { color } from '@/lib/ui';
 import { addGear, removeGear, saveDetails, saveProfile } from '../(contractor)/app/actions';
 
-export const metadata: Metadata = { title: 'Application received' };
+export const metadata: Metadata = { title: 'Application received', description: 'Your crew application is waiting for approval. Complete your profile meanwhile.', robots: { index: false, follow: false } };
 export const dynamic = 'force-dynamic';
 
 /** A crew applicant waiting for approval: their profile, so the team can decide. */

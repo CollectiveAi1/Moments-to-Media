@@ -7,7 +7,7 @@ import { requireAdmin } from '@/lib/context';
 import { INVOICE_STATUS, money } from '@/lib/format';
 import { color } from '@/lib/ui';
 
-export const metadata: Metadata = { title: 'Invoices' };
+export const metadata: Metadata = { title: 'Invoices', description: 'What clients owe and what they have paid.' };
 export const dynamic = 'force-dynamic';
 
 type Row = {

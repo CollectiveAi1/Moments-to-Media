@@ -9,7 +9,7 @@ import { PORTALS, type Portal } from '@/lib/portals';
 import { createClient } from '@/lib/supabase/server';
 import { card, color, fonts, radius } from '@/lib/ui';
 
-export const metadata: Metadata = { title: 'Sign in' };
+export const metadata: Metadata = { title: 'Sign in', description: 'Sign in to Moments to Media: the admin console, the crew app, or your client portal.' };
 export const dynamic = 'force-dynamic';
 
 /**
@@ -17,7 +17,7 @@ export const dynamic = 'force-dynamic';
  * belongs to (owners and producers to the board, crew to their app, clients
  * to their portal).
  */
-export default async function Home({ searchParams }: { searchParams: Promise<{ demo?: string }> }) {
+export default async function Home({ searchParams }: { searchParams: Promise<{ demo?: string; signed_out?: string }> }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (user) {
@@ -30,12 +30,28 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
   }
 
   const order: Portal[] = ['client', 'contractor', 'admin'];
-  const { demo } = await searchParams;
+  const { data: forms } = await supabase.rpc('signup_orgs', { p_role: 'client' });
+  const inquireSlug = ((forms ?? []) as Array<{ slug: string }>)[0]?.slug ?? null;
+  const { demo, signed_out: signedOut } = await searchParams;
   return (
     <main id="main" tabIndex={-1} style={{ minHeight: '100vh', background: color.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
       <div style={{ width: '100%', maxWidth: 980, display: 'flex', flexDirection: 'column', gap: 28, alignItems: 'center' }}>
         <Wordmark />
+        {inquireSlug ? (
+          <section aria-label="Book a shoot" style={{ width: '100%', background: color.primary, color: color.onPrimary, borderRadius: radius.xxl, padding: '22px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+            <span style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <strong style={{ fontFamily: fonts.heading, fontSize: 24, fontWeight: 600 }}>Planning an event?</strong>
+              <span style={{ fontSize: 15, opacity: 0.9 }}>Tell us the date. We’ll reply with availability and a proposal you can sign online.</span>
+            </span>
+            <Link href={`/inquire/${inquireSlug}`} style={{ minHeight: 48, padding: '0 22px', borderRadius: radius.sm, background: color.onPrimary, color: color.primary, display: 'inline-flex', alignItems: 'center', textDecoration: 'none', fontFamily: fonts.label, fontWeight: 600, fontSize: 15 }}>
+              Check availability
+            </Link>
+          </section>
+        ) : null}
         <h1 style={{ margin: 0, fontFamily: fonts.heading, fontSize: 30, fontWeight: 600, textAlign: 'center' }}>Sign in</h1>
+        {signedOut === 'everywhere' ? (
+          <p role="status" style={{ margin: 0, padding: '10px 14px', borderRadius: radius.sm, background: color.positiveBg, color: color.positiveStrong }}>You’re signed out on every device.</p>
+        ) : null}
         <div style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))', gap: 16 }}>
           {order.map((p) => (
             <section key={p} style={{ ...card(radius.xxl), padding: 22, display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -56,6 +72,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
           ))}
         </div>
         {demoEnabled() ? <DemoPanel unavailable={demo === 'unavailable'} /> : null}
+        <footer style={{ fontSize: 14, color: color.textMuted, display: 'flex', gap: 16 }}>
+          <Link href="/privacy" style={{ color: color.label, minHeight: 24, display: 'inline-flex', alignItems: 'center' }}>Privacy policy</Link>
+        </footer>
       </div>
     </main>
   );

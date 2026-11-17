@@ -7,7 +7,7 @@ import { isProducerish, orgPeople } from '@/lib/org';
 import { EventFields } from '../EventFields';
 import { createEvent } from './actions';
 
-export const metadata: Metadata = { title: 'New event' };
+export const metadata: Metadata = { title: 'New event', description: 'Create a draft event.' };
 
 export default async function NewEventPage() {
   const viewer = await requireAdmin();

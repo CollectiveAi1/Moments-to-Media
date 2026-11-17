@@ -11,7 +11,7 @@ import { PROPOSAL_STATUS, TIME_ZONES, dateTime, money, utcToZoned } from '@/lib/
 import { color } from '@/lib/ui';
 import { addProposalItem, deleteProposal, removeProposalItem, sendProposal, updateProposal, voidProposal } from '../../client-actions';
 
-export const metadata: Metadata = { title: 'Proposal' };
+export const metadata: Metadata = { title: 'Proposal', description: 'Build, send and track a proposal.' };
 export const dynamic = 'force-dynamic';
 
 export default async function ProposalPage({ params }: { params: Promise<{ proposalId: string }> }) {

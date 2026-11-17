@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { Monogram } from '@/components/contractor/bits';
 import { color, fonts } from '@/lib/ui';
@@ -12,7 +13,10 @@ export function PublicShell({ orgName, children, wide = false }: { orgName: stri
           <span style={{ fontFamily: fonts.heading, fontSize: 18, fontWeight: 600 }}>{orgName}</span>
         </header>
         {children}
-        <footer style={{ fontSize: 12, color: color.textMuted, textAlign: 'center' }}>{orgName}</footer>
+        <footer style={{ fontSize: 13, color: color.textMuted, textAlign: 'center', display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <span>{orgName}</span>
+          <Link href="/privacy" style={{ color: color.label, minHeight: 24, display: 'inline-flex', alignItems: 'center' }}>Privacy policy</Link>
+        </footer>
       </main>
     </div>
   );

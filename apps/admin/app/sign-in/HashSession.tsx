@@ -1,12 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { browserClient } from '@/lib/supabase/browser';
 import { color } from '@/lib/ui';
 
 /**
  * Picks up a session delivered in the URL fragment by an emailed link and
- * turns it into the session cookie. The fragment is cleared straight away so
+ * hands it to /auth/session, which sets the httpOnly session cookie. The fragment is cleared straight away so
  * the tokens do not linger in the address bar or history.
  */
 export function HashSession() {
@@ -23,12 +22,17 @@ export function HashSession() {
     }
     setState('working');
     history.replaceState(null, '', window.location.pathname);
-    browserClient()
-      .auth.setSession({ access_token: access, refresh_token: refresh })
-      .then(({ error }) => {
-        if (error) setState('failed');
+    fetch('/auth/session', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ access_token: access, refresh_token: refresh }),
+    })
+      .then((res) => {
+        if (!res.ok) setState('failed');
         else window.location.replace(`/auth/finish?type=${encodeURIComponent(type)}`);
-      });
+      })
+      .catch(() => setState('failed'));
   }, []);
 
   if (state === 'idle') return <p style={{ margin: 0, fontSize: 14, color: color.textMuted }}>Nothing to do here. Use the link below to sign in.</p>;

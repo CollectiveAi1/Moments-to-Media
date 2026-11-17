@@ -527,3 +527,11 @@ export async function setSignups(_p: ActionResult, form: FormData): Promise<Acti
     .eq('id', viewer.org.id);
   return settle(error, 'Sign-up settings saved.');
 }
+
+export async function removeStudioUpload(_p: ActionResult, form: FormData): Promise<ActionResult> {
+  const viewer = await requireAdmin();
+  const uploadId = id(form, 'upload_id');
+  if (!uploadId) return fail('That file was not found.');
+  const { error } = await viewer.supabase.rpc('remove_studio_upload', { p_upload: uploadId });
+  return settle(error, 'File removed.');
+}

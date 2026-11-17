@@ -1,7 +1,11 @@
+import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { PortalNav } from '@/components/portal/PortalNav';
 import { Monogram } from '@/components/contractor/bits';
 import { requireClient } from '@/lib/context';
+
+/** Signed-in pages are private: never in search results. */
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 import { color, fonts } from '@/lib/ui';
 
 /**
@@ -19,6 +23,7 @@ export default async function PortalLayout({ children }: { children: ReactNode }
           <span style={{ fontFamily: fonts.heading, fontSize: 17, fontWeight: 600 }}>{viewer.org.name}</span>
           <PortalNav />
           <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <a href="/account" style={{ fontSize: 13, color: color.label, minHeight: 32, display: 'inline-flex', alignItems: 'center' }}>Account</a>
             <span style={{ fontSize: 13, color: color.textMuted, overflowWrap: 'anywhere' }}>{viewer.email}</span>
             <form action="/auth/sign-out" method="post">
               <button type="submit" style={{ minHeight: 40, padding: '0 12px', borderRadius: 8, border: `1px solid ${color.border}`, background: 'transparent', fontFamily: fonts.label, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>

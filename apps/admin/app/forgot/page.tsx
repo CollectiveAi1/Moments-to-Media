@@ -4,7 +4,7 @@ import { AuthForm, SmallLink, TextField } from '@/components/auth/AuthForm';
 import { isPortal } from '@/lib/portals';
 import { forgotPassword } from '../auth-actions';
 
-export const metadata: Metadata = { title: 'Reset your password' };
+export const metadata: Metadata = { title: 'Reset your password', description: 'Get a link to set a new password. It works once and expires after an hour.' };
 
 export default async function ForgotPage({ searchParams }: { searchParams: Promise<{ portal?: string }> }) {
   const { portal } = await searchParams;

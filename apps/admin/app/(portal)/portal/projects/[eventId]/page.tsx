@@ -6,7 +6,7 @@ import { requireClient } from '@/lib/context';
 import { INVOICE_STATUS, bytes, dateTime, formatDay, money, timeRange } from '@/lib/format';
 import { color } from '@/lib/ui';
 
-export const metadata: Metadata = { title: 'Project' };
+export const metadata: Metadata = { title: 'Project', description: 'Your project: date and venue, billing, your signed contract and your media.' };
 export const dynamic = 'force-dynamic';
 
 export default async function PortalProject({ params }: { params: Promise<{ eventId: string }> }) {

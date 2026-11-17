@@ -6,7 +6,7 @@ import { bytes, dateTime, formatDay } from '@/lib/format';
 import { myClientIds } from '@/lib/portal/load';
 import { color, fonts, radius } from '@/lib/ui';
 
-export const metadata: Metadata = { title: 'Your media' };
+export const metadata: Metadata = { title: 'Your media', description: 'Download the photos and video Moments to Media has delivered to you.' };
 export const dynamic = 'force-dynamic';
 
 type File = { id: string; filename: string; bytes: number | null; kind: string; completed_at: string | null };

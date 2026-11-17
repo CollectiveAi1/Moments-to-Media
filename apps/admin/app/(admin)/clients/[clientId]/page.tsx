@@ -9,7 +9,7 @@ import { EVENT_STATUS, INVOICE_STATUS, PROPOSAL_STATUS, dateTime, formatDay, mon
 import { color, radius } from '@/lib/ui';
 import { addContact, inviteClient, sendClientMessage } from '../../client-actions';
 
-export const metadata: Metadata = { title: 'Client' };
+export const metadata: Metadata = { title: 'Client', description: 'A client’s contacts, portal access, projects, proposals, invoices and messages.' };
 export const dynamic = 'force-dynamic';
 
 export default async function ClientPage({ params }: { params: Promise<{ clientId: string }> }) {

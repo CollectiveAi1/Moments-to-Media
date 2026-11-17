@@ -77,6 +77,7 @@ export function Sidebar({
           </Link>
         ) : null}
         <span style={{ fontSize: 12, color: color.textMuted, overflowWrap: 'anywhere' }}>{email}</span>
+        <Link href="/account" style={{ minHeight: 32, display: 'flex', alignItems: 'center', fontSize: 13, color: color.label }}>Account and security</Link>
         <form action="/auth/sign-out" method="post">
           <button
             type="submit"

@@ -7,7 +7,7 @@ import { INVOICE_STATUS, firstName, formatDay, money, timeRange } from '@/lib/fo
 import { myClientIds } from '@/lib/portal/load';
 import { color } from '@/lib/ui';
 
-export const metadata: Metadata = { title: 'Your portal' };
+export const metadata: Metadata = { title: 'Your portal', description: 'Your bookings with Moments to Media: payments, projects and delivered media.' };
 export const dynamic = 'force-dynamic';
 
 type Inv = { id: string; number: number; title: string; status: string; total_cents: number; paid_cents: number; invoice_installments: Array<{ id: string; label: string; amount_cents: number; due_on: string }> };

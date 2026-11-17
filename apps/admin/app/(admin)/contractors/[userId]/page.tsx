@@ -8,7 +8,7 @@ import { ASSIGNMENT_STATUS, PAYOUT_STATUS, dateTime, money } from '@/lib/format'
 import { color } from '@/lib/ui';
 import { reviewDocument } from '../actions';
 
-export const metadata: Metadata = { title: 'Contractor' };
+export const metadata: Metadata = { title: 'Contractor', description: 'A contractor’s profile, documents, gear and history.' };
 export const dynamic = 'force-dynamic';
 
 const DOC_LABEL: Record<string, string> = {

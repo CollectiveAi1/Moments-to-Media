@@ -8,7 +8,7 @@ import { TIME_ZONES, dateTime } from '@/lib/format';
 import { color } from '@/lib/ui';
 import { deleteAnnouncement, postAnnouncement, setPinned } from './actions';
 
-export const metadata: Metadata = { title: 'Announcements' };
+export const metadata: Metadata = { title: 'Announcements', description: 'Messages for the crew, pinned to their home screens.' };
 export const dynamic = 'force-dynamic';
 
 export default async function AnnouncementsPage() {

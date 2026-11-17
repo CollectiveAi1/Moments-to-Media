@@ -10,7 +10,7 @@ import { isCommitted } from '@/lib/format';
 import { color } from '@/lib/ui';
 import { checkOut, setShot } from '../../../actions';
 
-export const metadata: Metadata = { title: 'Shot list' };
+export const metadata: Metadata = { title: 'Shot list', description: 'The live shot list: tick shots off as you capture them.' };
 export const dynamic = 'force-dynamic';
 
 export default async function ShotList({ params }: { params: Promise<{ eventId: string }> }) {

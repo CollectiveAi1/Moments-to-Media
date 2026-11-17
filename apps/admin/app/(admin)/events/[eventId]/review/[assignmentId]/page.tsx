@@ -8,7 +8,7 @@ import { card, color, radius } from '@/lib/ui';
 import { approveAll, requestChanges, saveRating } from './actions';
 import { RatingPicker } from './RatingPicker';
 
-export const metadata: Metadata = { title: 'Review' };
+export const metadata: Metadata = { title: 'Review', description: 'Review a contractor’s footage, approve it or request changes.' };
 export const dynamic = 'force-dynamic';
 
 export default async function ReviewPage({ params }: { params: Promise<{ eventId: string; assignmentId: string }> }) {

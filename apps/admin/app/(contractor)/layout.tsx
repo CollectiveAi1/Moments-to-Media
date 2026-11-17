@@ -1,7 +1,11 @@
+import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { ContractorSidebar } from '@/components/contractor/ContractorSidebar';
 import { TabBar } from '@/components/contractor/TabBar';
 import { requireContractor } from '@/lib/context';
+
+/** Signed-in pages are private: never in search results. */
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 import { color, radius } from '@/lib/ui';
 
 /**

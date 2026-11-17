@@ -6,7 +6,15 @@ import { createClient } from '@/lib/supabase/server';
 import { color, fonts, radius } from '@/lib/ui';
 import { signUp } from '../../auth-actions';
 
-export const metadata: Metadata = { title: 'Create an account' };
+export async function generateMetadata({ params }: { params: Promise<{ portal: string }> }): Promise<Metadata> {
+  const { portal } = await params;
+  const names: Record<string, string> = { admin: 'Admin console', contractor: 'Crew', client: 'Client portal' };
+  const name = names[portal] ?? 'Moments to Media';
+  return {
+    title: portal === 'contractor' ? 'Join the crew' : 'Create your client account',
+    description: portal === 'contractor' ? 'Apply to shoot with Moments to Media: create an account and fill in your profile.' : 'Create your Moments to Media client account to see bookings, pay invoices and download your media.',
+  };
+}
 export const dynamic = 'force-dynamic';
 
 export default async function SignUpPage({ params }: { params: Promise<{ portal: string }> }) {
@@ -46,7 +54,7 @@ export default async function SignUpPage({ params }: { params: Promise<{ portal:
           <PasswordField label="Confirm password" name="confirm" autoComplete="new-password" />
           <label style={{ display: 'flex', gap: 8, alignItems: 'flex-start', fontSize: 14, lineHeight: 1.45 }}>
             <input type="checkbox" name="terms" required style={{ width: 18, height: 18, marginTop: 2 }} />
-            <span>I agree to {orgs.length === 1 ? orgs[0]!.name : 'the company'}’s terms and to receive emails about my {contractor ? 'jobs' : 'bookings'}.</span>
+            <span>I agree to {orgs.length === 1 ? orgs[0]!.name : 'the company'}’s terms, have read the <a href="/privacy" target="_blank" rel="noreferrer" style={{ color: color.label }}>privacy policy</a>, and agree to receive emails about my {contractor ? 'jobs' : 'bookings'}.</span>
           </label>
         </AuthForm>
       )}

@@ -5,7 +5,7 @@ import { Empty, LinkButton, Muted, Table, Tag, td } from '@/components/ui';
 import { requireAdmin } from '@/lib/context';
 import { PROPOSAL_STATUS, dateTime, formatDay } from '@/lib/format';
 
-export const metadata: Metadata = { title: 'Proposals' };
+export const metadata: Metadata = { title: 'Proposals', description: 'Proposals sent to clients and where each stands.' };
 export const dynamic = 'force-dynamic';
 
 export default async function ProposalsPage() {

@@ -16,7 +16,10 @@ export function AuthCard({ title, subtitle, children, footer }: { title: string;
           </div>
           {children}
         </div>
-        {footer ? <div style={{ fontSize: 14, textAlign: 'center', color: color.textMuted, display: 'flex', flexDirection: 'column', gap: 6 }}>{footer}</div> : null}
+        <div style={{ fontSize: 14, textAlign: 'center', color: color.textMuted, display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center' }}>
+          {footer}
+          <Link href="/privacy" style={{ fontSize: 13, color: color.label, minHeight: 24, display: 'inline-flex', alignItems: 'center' }}>Privacy policy</Link>
+        </div>
       </div>
     </main>
   );

@@ -11,7 +11,7 @@ import { initials, isCommitted, zonedDate } from '@/lib/format';
 import { color, fonts } from '@/lib/ui';
 import { addDocument, addGear, removeGear, saveDetails, saveProfile, toggleDay } from '../actions';
 
-export const metadata: Metadata = { title: 'Profile' };
+export const metadata: Metadata = { title: 'Profile', description: 'Your contact details, skills, coverage area, gear, availability and documents.' };
 export const dynamic = 'force-dynamic';
 
 const REQUIRED_DOCS = ['contractor_agreement', 'insurance'];
@@ -225,6 +225,7 @@ export default async function Profile({ searchParams }: { searchParams: Promise<
       <div className="c-mobile-only">
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center' }}>
         {viewer.isAdmin ? <Link href="/board" style={{ fontSize: 14 }}>Open the admin console →</Link> : null}
+        <Link href="/account" style={{ fontSize: 14, minHeight: 32, display: 'inline-flex', alignItems: 'center' }}>Account and security</Link>
         <form action="/auth/sign-out" method="post">
           <button type="submit" style={{ minHeight: 44, padding: '0 16px', borderRadius: 10, border: `1px solid ${color.border}`, background: 'transparent', fontFamily: fonts.label, fontWeight: 600, cursor: 'pointer' }}>
             Sign out

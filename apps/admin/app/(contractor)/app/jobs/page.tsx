@@ -6,7 +6,7 @@ import { requireContractor } from '@/lib/context';
 import { dateTime, formatDay, hours, rate } from '@/lib/format';
 import { color, fonts, radius } from '@/lib/ui';
 
-export const metadata: Metadata = { title: 'Open calls' };
+export const metadata: Metadata = { title: 'Open calls', description: 'Open calls that match your area, gear and documents.' };
 export const dynamic = 'force-dynamic';
 
 const FILTERS = [

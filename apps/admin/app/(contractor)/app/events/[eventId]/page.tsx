@@ -10,7 +10,7 @@ import { dateTime, formatDay, formatTime, isCommitted, timeRange } from '@/lib/f
 import { color, fonts, radius } from '@/lib/ui';
 import { checkIn, runningLate } from '../../actions';
 
-export const metadata: Metadata = { title: 'Event packet' };
+export const metadata: Metadata = { title: 'Event packet', description: 'Everything for the shoot: location, brief, contacts, crew and check-in.' };
 export const dynamic = 'force-dynamic';
 
 export default async function Packet({ params }: { params: Promise<{ eventId: string }> }) {

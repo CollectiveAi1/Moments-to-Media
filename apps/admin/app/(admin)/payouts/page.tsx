@@ -8,7 +8,7 @@ import { PAYOUT_STATUS, dateTime, money } from '@/lib/format';
 import { color, fonts } from '@/lib/ui';
 import { movePayout } from './actions';
 
-export const metadata: Metadata = { title: 'Payouts' };
+export const metadata: Metadata = { title: 'Payouts', description: 'Contractor payouts from draft to paid.' };
 export const dynamic = 'force-dynamic';
 
 type Payout = {

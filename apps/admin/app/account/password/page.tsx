@@ -5,7 +5,7 @@ import { AuthForm, PasswordField } from '@/components/auth/AuthForm';
 import { createClient } from '@/lib/supabase/server';
 import { setPassword } from '../../auth-actions';
 
-export const metadata: Metadata = { title: 'Choose a password' };
+export const metadata: Metadata = { title: 'Choose a password', description: 'Choose the password you sign in with.', robots: { index: false, follow: false } };
 export const dynamic = 'force-dynamic';
 
 export default async function PasswordPage({ searchParams }: { searchParams: Promise<{ first?: string }> }) {

@@ -7,7 +7,7 @@ import { color } from '@/lib/ui';
 import { setClientPayments, setSignups } from '../client-actions';
 import { removeMember, saveOrganization, updateMember } from './actions';
 
-export const metadata: Metadata = { title: 'Settings' };
+export const metadata: Metadata = { title: 'Settings', description: 'Organization settings, sign-up, client payments and people.' };
 export const dynamic = 'force-dynamic';
 
 type Settings = {

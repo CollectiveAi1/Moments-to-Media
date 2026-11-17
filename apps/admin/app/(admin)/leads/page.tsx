@@ -9,7 +9,7 @@ import { LEAD_STATUS, dateTime } from '@/lib/format';
 import { color, radius } from '@/lib/ui';
 import { addLead, setLeadStatus } from '../client-actions';
 
-export const metadata: Metadata = { title: 'Inquiries' };
+export const metadata: Metadata = { title: 'Inquiries', description: 'Inquiries from the public form and by hand, from first message to booked.' };
 export const dynamic = 'force-dynamic';
 
 const COLUMNS = ['new', 'contacted', 'proposal_sent', 'booked', 'lost'] as const;

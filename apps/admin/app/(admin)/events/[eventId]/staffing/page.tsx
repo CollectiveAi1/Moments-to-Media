@@ -10,7 +10,7 @@ import { rank, type Ranked } from '@/lib/staffing/rank';
 import { color, fonts, radius } from '@/lib/ui';
 import { cancelBooking, expireSelection, invite, pass, select, withdrawInvite } from './actions';
 
-export const metadata: Metadata = { title: 'Staffing' };
+export const metadata: Metadata = { title: 'Staffing', description: 'Ranked candidates for each slot: invite, select and confirm.' };
 export const dynamic = 'force-dynamic';
 
 type Assignment = { id: string; user_id: string; status: string; note: string | null; invite_expires_at: string | null; confirm_deadline: string | null };

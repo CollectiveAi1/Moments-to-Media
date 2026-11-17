@@ -10,7 +10,7 @@ import { INVOICE_STATUS, PAYMENT_METHOD, dateTime, money } from '@/lib/format';
 import { color } from '@/lib/ui';
 import { payInvoice } from '../../actions';
 
-export const metadata: Metadata = { title: 'Invoice' };
+export const metadata: Metadata = { title: 'Invoice', description: 'Invoice details, payment schedule and receipts.' };
 export const dynamic = 'force-dynamic';
 
 const STATE_LABEL = { paid: 'Paid', partly_paid: 'Partly paid', overdue: 'Overdue', due: 'Due today', upcoming: 'Upcoming' } as const;

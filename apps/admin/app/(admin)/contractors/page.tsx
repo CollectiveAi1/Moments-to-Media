@@ -9,7 +9,7 @@ import { orgPeople } from '@/lib/org';
 import { color } from '@/lib/ui';
 import { decideApplicant, inviteMember, resendInvite, revokeInvite } from './actions';
 
-export const metadata: Metadata = { title: 'Contractors' };
+export const metadata: Metadata = { title: 'Contractors', description: 'The crew roster, applications, invitations and documents.' };
 export const dynamic = 'force-dynamic';
 
 export default async function ContractorsPage() {

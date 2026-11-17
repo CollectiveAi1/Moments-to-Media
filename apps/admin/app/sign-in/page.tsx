@@ -5,7 +5,7 @@ import { SmallLink } from '@/components/auth/AuthForm';
 import { createClient } from '@/lib/supabase/server';
 import { HashSession } from './HashSession';
 
-export const metadata: Metadata = { title: 'Signing in' };
+export const metadata: Metadata = { title: 'Signing in', description: 'Finishing sign-in from an emailed link.', robots: { index: false, follow: false } };
 
 const NOTICES: Record<string, string> = {
   link: 'That link has expired or was already used. Sign in with your password, or ask for a new link.',

@@ -7,7 +7,7 @@ import { requireAdmin } from '@/lib/context';
 import { money } from '@/lib/format';
 import { addClient } from '../client-actions';
 
-export const metadata: Metadata = { title: 'Clients' };
+export const metadata: Metadata = { title: 'Clients', description: 'Every client, with their projects, balances and portal access.' };
 export const dynamic = 'force-dynamic';
 
 type Row = {

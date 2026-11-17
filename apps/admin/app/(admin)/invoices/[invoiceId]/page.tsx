@@ -12,7 +12,7 @@ import {
   addInstallment, addInvoiceLine, deleteInvoice, recordPayment, removeInstallment, removeInvoiceLine, sendInvoice, splitInvoice, updateInvoice, updateInvoiceNotes, voidInvoice,
 } from '../../client-actions';
 
-export const metadata: Metadata = { title: 'Invoice' };
+export const metadata: Metadata = { title: 'Invoice', description: 'Invoice lines, payment schedule and payments received.' };
 export const dynamic = 'force-dynamic';
 
 const STATE_LABEL = { paid: 'Paid', partly_paid: 'Partly paid', overdue: 'Overdue', due: 'Due today', upcoming: 'Upcoming' } as const;

@@ -6,7 +6,7 @@ import { requireAdmin } from '@/lib/context';
 import { EVENT_STATUS, dateTime, isCommitted } from '@/lib/format';
 import { color } from '@/lib/ui';
 
-export const metadata: Metadata = { title: 'Staffing' };
+export const metadata: Metadata = { title: 'Staffing', description: 'Every slot that still needs someone.' };
 export const dynamic = 'force-dynamic';
 
 type Row = {

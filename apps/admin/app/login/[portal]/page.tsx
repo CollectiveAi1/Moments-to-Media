@@ -7,7 +7,15 @@ import { isPortal, PORTALS } from '@/lib/portals';
 import { createClient } from '@/lib/supabase/server';
 import { signIn } from '../../auth-actions';
 
-export const metadata: Metadata = { title: 'Sign in' };
+export async function generateMetadata({ params }: { params: Promise<{ portal: string }> }): Promise<Metadata> {
+  const { portal } = await params;
+  const names: Record<string, string> = { admin: 'Admin console', contractor: 'Crew', client: 'Client portal' };
+  const name = names[portal] ?? 'Moments to Media';
+  return {
+    title: `${name} sign-in`,
+    description: `Sign in to the Moments to Media ${name.toLowerCase()} with your email and password.`,
+  };
+}
 export const dynamic = 'force-dynamic';
 
 export default async function LoginPage({ params }: { params: Promise<{ portal: string }> }) {

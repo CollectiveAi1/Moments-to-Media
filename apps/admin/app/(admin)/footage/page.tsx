@@ -6,7 +6,7 @@ import { requireAdmin } from '@/lib/context';
 import { ASSIGNMENT_STATUS, bytes, dateTime } from '@/lib/format';
 import { color } from '@/lib/ui';
 
-export const metadata: Metadata = { title: 'Footage and review' };
+export const metadata: Metadata = { title: 'Footage and review', description: 'Footage waiting for review, and the library of finished uploads.' };
 export const dynamic = 'force-dynamic';
 
 type Assignment = {

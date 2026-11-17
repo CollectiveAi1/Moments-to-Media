@@ -6,7 +6,7 @@ import { requireAdmin } from '@/lib/context';
 import { EVENT_STATUS, dateTime, isCommitted } from '@/lib/format';
 import { color } from '@/lib/ui';
 
-export const metadata: Metadata = { title: 'Events' };
+export const metadata: Metadata = { title: 'Events', description: 'All events, upcoming and past.' };
 export const dynamic = 'force-dynamic';
 
 const FILTERS = [

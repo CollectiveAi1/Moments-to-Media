@@ -4,7 +4,7 @@ import { requireContractor } from '@/lib/context';
 import { dateTime, money } from '@/lib/format';
 import { color, fonts } from '@/lib/ui';
 
-export const metadata: Metadata = { title: 'Earnings' };
+export const metadata: Metadata = { title: 'Earnings', description: 'What you have been paid and what is on its way.' };
 export const dynamic = 'force-dynamic';
 
 type Payout = {

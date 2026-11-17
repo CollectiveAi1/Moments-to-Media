@@ -5,7 +5,7 @@ import { BackLink, Card, Empty, Field, LinkButton, Row, inputStyle } from '@/com
 import { requireAdmin } from '@/lib/context';
 import { createInvoice } from '../../client-actions';
 
-export const metadata: Metadata = { title: 'New invoice' };
+export const metadata: Metadata = { title: 'New invoice', description: 'Start an invoice for a client.' };
 export const dynamic = 'force-dynamic';
 
 export default async function NewInvoicePage({ searchParams }: { searchParams: Promise<{ client?: string }> }) {

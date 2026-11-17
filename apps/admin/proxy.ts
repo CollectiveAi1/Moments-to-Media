@@ -2,13 +2,14 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { supabaseAnonKey, supabaseUrl } from './lib/env';
 import { portalForPath } from './lib/portals';
+import { AUTH_COOKIE_OPTIONS } from './lib/supabase/cookies';
 
 // The inquiry form and proposal links are opened by people with no account.
 // They reach the database only through functions made for them (see
 // supabase/migrations/20261118000100_client_side.sql).
 // Sign-in, sign-up and password pages are open too, and so is "/", which is
 // the portal chooser when signed out.
-const PUBLIC_PATHS = ['/sign-in', '/auth/', '/inquire/', '/p/', '/login/', '/signup/', '/forgot', '/account/password'];
+const PUBLIC_PATHS = ['/sign-in', '/auth/', '/inquire/', '/p/', '/login/', '/signup/', '/forgot', '/account/password', '/privacy', '/robots.txt', '/sitemap.xml', '/manifest.webmanifest', '/opengraph-image', '/twitter-image', '/apple-icon', '/icon'];
 
 /**
  * Runs before every page. Two jobs: keep the session cookie fresh, and send
@@ -25,7 +26,7 @@ export async function proxy(request: NextRequest) {
       setAll: (toSet) => {
         for (const { name, value } of toSet) request.cookies.set(name, value);
         response = NextResponse.next({ request });
-        for (const { name, value, options } of toSet) response.cookies.set(name, value, options);
+        for (const { name, value, options } of toSet) response.cookies.set(name, value, { ...options, ...AUTH_COOKIE_OPTIONS });
       },
     },
   });

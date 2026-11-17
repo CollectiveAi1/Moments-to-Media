@@ -11,7 +11,7 @@ import { dateTime, duration, firstName, formatDay, formatTime, isCommitted, rate
 import { color, fonts, radius } from '@/lib/ui';
 import { confirmJob, declineInvite } from './actions';
 
-export const metadata: Metadata = { title: 'Home' };
+export const metadata: Metadata = { title: 'Home', description: 'Your next job, what needs you, and what is coming up.' };
 export const dynamic = 'force-dynamic';
 
 export default async function ContractorHome() {

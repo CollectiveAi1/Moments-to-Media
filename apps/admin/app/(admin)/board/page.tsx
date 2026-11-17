@@ -10,7 +10,7 @@ import { loadBoard } from '@/lib/board/query';
 import { requireAdmin } from '@/lib/context';
 import { card, color, fonts, radius } from '@/lib/ui';
 
-export const metadata: Metadata = { title: 'Operations board' };
+export const metadata: Metadata = { title: 'Operations board', description: 'Every event by status, with what needs attention today.' };
 // Always the live state: this page is the producer's picture of right now.
 export const dynamic = 'force-dynamic';
 

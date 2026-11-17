@@ -3,7 +3,7 @@
 import { crc64Base64, crc64Start, crc64Update, planPartBytes } from '@mtm/shared';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
-import { browserClient } from '@/lib/supabase/browser';
+import { accessToken, tokenClient } from '@/lib/supabase/browser';
 import { color, fonts, radius } from '@/lib/ui';
 import { ProgressBar } from './bits';
 
@@ -38,7 +38,11 @@ class Stop extends Error {}
  * Progress here is per part. The native module's background progress is the
  * real thing for card dumps; this is for the files a phone browser can hold.
  */
-export function Uploader({ slotId, disabled }: { slotId: string; disabled?: boolean }) {
+/**
+ * `slotId` is the crew slot for a contractor's footage, or the event id for a
+ * studio delivery to the client (public.start_upload tells them apart).
+ */
+export function Uploader({ slotId, disabled, kind }: { slotId: string; disabled?: boolean; kind?: 'raw' | 'selects' | 'deliverables' }) {
   const router = useRouter();
   const [files, setFiles] = useState<FileState[]>([]);
   const [running, setRunning] = useState(false);
@@ -68,12 +72,9 @@ export function Uploader({ slotId, disabled }: { slotId: string; disabled?: bool
   }
 
   async function uploadOne(file: File, index: number) {
-    const supabase = browserClient();
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    if (!session) throw new Error('You are signed out. Sign in again and retry.');
-    const token = session.access_token;
+    const token = await accessToken();
+    if (!token) throw new Error('You are signed out. Sign in again and retry.');
+    const supabase = tokenClient(token);
 
     // 1. hash
     patch(index, { phase: 'hashing' });
@@ -93,6 +94,7 @@ export function Uploader({ slotId, disabled }: { slotId: string; disabled?: bool
     // 2. declare
     const plan = await call<{ upload_id: string; part_size_bytes: number; presigned: Signed[] }>('upload-start', token, {
       slot_id: slotId,
+      ...(kind ? { kind } : {}),
       filename: file.name,
       bytes: file.size,
       checksum: crc64Base64(whole),

@@ -9,7 +9,7 @@ import { color } from '@/lib/ui';
 import { declineProposal } from '../../public-actions';
 import { SignForm, type SignItem } from './SignForm';
 
-export const metadata: Metadata = { title: 'Your proposal', robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: 'Your proposal', description: 'Review your proposal, choose add-ons, sign and book.', robots: { index: false, follow: false } };
 export const dynamic = 'force-dynamic';
 
 type Proposal = {

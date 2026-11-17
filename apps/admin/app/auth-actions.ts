@@ -1,5 +1,6 @@
 'use server';
 
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { DEMO_ACCOUNTS, DEMO_REFUSAL, demoEnabled, isDemoEmail } from '@/lib/demo';
 import { isPortal, PORTALS, passwordProblem, type Portal } from '@/lib/portals';
@@ -13,6 +14,14 @@ export interface AuthState {
 }
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** The visitor's IP as Vercel reports it, for the sign-in throttle. */
+async function clientIp(): Promise<string> {
+  const h = await headers();
+  return (h.get('x-forwarded-for') ?? h.get('x-real-ip') ?? '').split(',')[0]?.trim() || 'unknown';
+}
+
+const minutes = (seconds: number) => Math.max(1, Math.ceil(seconds / 60));
 const field = (form: FormData, name: string) => String(form.get(name) ?? '').trim();
 
 /** Which portals an account may open, from its active memberships. */
@@ -40,15 +49,24 @@ export async function signIn(_p: AuthState, form: FormData): Promise<AuthState> 
   if (!EMAIL.test(email) || !password) return { status: 'error', message: 'Enter your email and password.', email };
 
   const supabase = await createClient();
+  const ip = await clientIp();
+  const { data: wait } = await supabase.rpc('login_wait_seconds', { p_email: email, p_ip: ip });
+  if (typeof wait === 'number' && wait > 0) {
+    return { status: 'error', message: `Too many wrong passwords. Try again in ${minutes(wait)} minute${minutes(wait) === 1 ? '' : 's'}, or reset your password.`, email };
+  }
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error || !data.user) {
-    const msg = /confirm/i.test(error?.message ?? '')
-      ? 'Confirm your email first: open the link we sent when you signed up.'
-      : error?.status === 429
-        ? 'Too many attempts. Wait a minute and try again.'
-        : 'That email and password do not match. Try again, or reset your password.';
-    return { status: 'error', message: msg, email };
+    if (/confirm/i.test(error?.message ?? '')) {
+      return { status: 'error', message: 'Confirm your email first: open the link we sent when you signed up.', email };
+    }
+    if (error?.status === 429) return { status: 'error', message: 'Too many attempts from this network. Wait a few minutes and try again.', email };
+    const { data: after } = await supabase.rpc('record_login_failure', { p_email: email, p_ip: ip });
+    if (typeof after === 'number' && after > 0) {
+      return { status: 'error', message: `Wrong email or password. Sign-in is paused for ${minutes(after)} minutes after too many tries; you can reset your password now.`, email };
+    }
+    return { status: 'error', message: 'Wrong email or password.', email };
   }
+  await supabase.rpc('clear_login_failures', { p_email: email, p_ip: ip });
 
   // Invitations and client records made since their last visit.
   await supabase.rpc('claim_invitations');
@@ -135,4 +153,11 @@ export async function demoSignIn(form: FormData): Promise<void> {
   const { error } = await supabase.auth.signInWithPassword({ email: DEMO_ACCOUNTS[portal].email, password: process.env.DEMO_PASSWORD ?? '' });
   if (error) redirect(`/?demo=unavailable`);
   redirect(PORTALS[portal].home);
+}
+
+/** Ends every session this account has, on every device, then signs out here. */
+export async function signOutEverywhere(): Promise<void> {
+  const supabase = await createClient();
+  await supabase.auth.signOut({ scope: 'global' });
+  redirect('/?signed_out=everywhere');
 }

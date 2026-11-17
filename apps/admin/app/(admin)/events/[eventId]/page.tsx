@@ -21,7 +21,7 @@ import {
 } from './actions';
 import { GEAR_LABELS, SlotFields } from './SlotFields';
 
-export const metadata: Metadata = { title: 'Event' };
+export const metadata: Metadata = { title: 'Event', description: 'Event details, slots, brief, shot list, contacts and client delivery.' };
 export const dynamic = 'force-dynamic';
 
 type Slot = {
@@ -460,6 +460,7 @@ export default async function EventPage({
           {eventInvoices.length === 0 ? (
             <Link href={`/invoices/new?client=${String(event.client_id)}`} style={{ fontSize: 14 }}>Invoice {clientName} for this event →</Link>
           ) : null}
+          <LinkButton href={`/events/${eventId}/deliver`} variant="secondary">Upload finished files for {clientName ?? 'the client'}</LinkButton>
           {release ? (
             <Muted>Media released to {clientName} {dateTime(String(release.released_at), zone)}. New approvals appear in their portal automatically.</Muted>
           ) : approvedCount === 0 ? (

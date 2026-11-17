@@ -6,7 +6,7 @@ import { requireAdmin } from '@/lib/context';
 import { TIME_ZONES, money } from '@/lib/format';
 import { createProposal } from '../../client-actions';
 
-export const metadata: Metadata = { title: 'New proposal' };
+export const metadata: Metadata = { title: 'New proposal', description: 'Start a proposal for an inquiry or client.' };
 export const dynamic = 'force-dynamic';
 
 const UUID = /^[0-9a-f-]{36}$/i;

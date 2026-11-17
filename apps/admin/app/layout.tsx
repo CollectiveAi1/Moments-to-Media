@@ -1,3 +1,4 @@
+import { Analytics } from '@vercel/analytics/next';
 import type { Metadata } from 'next';
 import { Cinzel, Lato, Montserrat } from 'next/font/google';
 import { cookies } from 'next/headers';
@@ -6,6 +7,7 @@ import { DemoBanner } from '@/components/auth/DemoBanner';
 import { FlashNotice } from '@/components/FlashNotice';
 import { DEMO_ACCOUNTS, demoEnabled } from '@/lib/demo';
 import { createClient } from '@/lib/supabase/server';
+import { SITE_URL } from '@/lib/site';
 import { color, fonts } from '@/lib/ui';
 
 // UI-SPEC "Fonts": Cinzel 600, Montserrat 500/600, Lato 400/700.
@@ -14,9 +16,14 @@ const label = Montserrat({ subsets: ['latin'], weight: ['500', '600'], variable:
 const body = Lato({ subsets: ['latin'], weight: ['400', '700'], variable: '--font-body', display: 'swap' });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: { default: 'Moments to Media', template: '%s · Moments to Media' },
-  description: 'Operations console for Moments to Media crews.',
-  robots: { index: false, follow: false },
+  description: 'Event photo and video by Moments to Media: book online, sign and pay, and download your media. Crew and studio sign in here too.',
+  applicationName: 'Moments to Media',
+  openGraph: { type: 'website', siteName: 'Moments to Media', locale: 'en_US' },
+  twitter: { card: 'summary_large_image' },
+  // Public pages may be indexed; every signed-in area sets noindex in its layout.
+  robots: { index: true, follow: true },
 };
 
 // The few rules that cannot be inline styles (hover, focus, resets). Built
@@ -61,6 +68,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         {demoWho ? <DemoBanner who={demoWho} /> : null}
         <FlashNotice message={flash} />
         {children}
+        {/* Cookieless page-view counts (Vercel Web Analytics); see /privacy. */}
+        <Analytics />
       </body>
     </html>
   );

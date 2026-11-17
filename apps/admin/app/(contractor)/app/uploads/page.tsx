@@ -8,7 +8,7 @@ import { bytes, duration, firstName, formatDay } from '@/lib/format';
 import { color } from '@/lib/ui';
 import { markUploaded } from '../actions';
 
-export const metadata: Metadata = { title: 'Uploads' };
+export const metadata: Metadata = { title: 'Uploads', description: 'Upload footage for your jobs straight to storage, with resume and verification.' };
 export const dynamic = 'force-dynamic';
 
 const CAN_UPLOAD = ['checked_in', 'checked_out', 'changes_requested'];

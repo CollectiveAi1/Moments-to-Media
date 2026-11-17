@@ -5,7 +5,7 @@ import { requireClient } from '@/lib/context';
 import { INVOICE_STATUS, money } from '@/lib/format';
 import { myClientIds } from '@/lib/portal/load';
 
-export const metadata: Metadata = { title: 'Invoices' };
+export const metadata: Metadata = { title: 'Invoices', description: 'Every invoice for your bookings, with what is paid and what is due.' };
 export const dynamic = 'force-dynamic';
 
 export default async function PortalInvoices() {

@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { getViewer } from '@/lib/context';
 import { card, color, fonts, radius } from '@/lib/ui';
 
-export const metadata: Metadata = { title: 'No access' };
+export const metadata: Metadata = { title: 'No access', description: 'This account has no access to this part of Moments to Media.', robots: { index: false, follow: false } };
 
 export default async function NoAccess() {
   const viewer = await getViewer();

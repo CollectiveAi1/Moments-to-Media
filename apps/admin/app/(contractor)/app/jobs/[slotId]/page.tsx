@@ -9,7 +9,7 @@ import { dateTime, formatDay, hours, isCommitted, rate, timeRange } from '@/lib/
 import { color } from '@/lib/ui';
 import { confirmJob, declineInvite, optIn, withdrawInterest } from '../../actions';
 
-export const metadata: Metadata = { title: 'Open call' };
+export const metadata: Metadata = { title: 'Open call', description: 'Job details, gear needed and the pay, before you opt in.' };
 export const dynamic = 'force-dynamic';
 
 export default async function JobDetail({ params }: { params: Promise<{ slotId: string }> }) {

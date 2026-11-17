@@ -7,7 +7,7 @@ import { myClientIds } from '@/lib/portal/load';
 import { color, radius } from '@/lib/ui';
 import { sendMessage } from '../actions';
 
-export const metadata: Metadata = { title: 'Messages' };
+export const metadata: Metadata = { title: 'Messages', description: 'Message the Moments to Media team about your booking.' };
 export const dynamic = 'force-dynamic';
 
 export default async function PortalMessages() {
