@@ -98,16 +98,16 @@ jobs:
         with:
           version: 9.12.3
 
-      # No `cache: pnpm` until a lockfile is committed: the cache step fails
-      # outright when it cannot find pnpm-lock.yaml.
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
+          cache: pnpm
 
-      # TODO: switch to --frozen-lockfile once pnpm-lock.yaml is committed
-      # (needs one `pnpm install` on a machine with a working Node toolchain).
+      # Frozen: CI installs exactly what pnpm-lock.yaml records and fails if
+      # package.json has drifted from it, rather than resolving fresh versions
+      # on every run.
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - run: pnpm typecheck
       - run: pnpm lint

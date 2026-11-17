@@ -46,9 +46,9 @@ Deno.test("an error document is caught even when the status is 200", () => {
 
 Deno.test("a successful completion document is not mistaken for an error", () => {
   const body = `<CompleteMultipartUploadResult><ETag>"abc-3"</ETag>` +
-    `<ChecksumSHA256>ZmFrZQ==-3</ChecksumSHA256></CompleteMultipartUploadResult>`;
+    `<ChecksumCRC64NVME>FsVNRbMAn6I=</ChecksumCRC64NVME></CompleteMultipartUploadResult>`;
   assertEquals(parseErrorCode(body), null);
-  assertEquals(parseTag(body, "ChecksumSHA256"), "ZmFrZQ==-3");
+  assertEquals(parseTag(body, "ChecksumCRC64NVME"), "FsVNRbMAn6I=");
 });
 
 Deno.test("completeMultipartXml orders parts ascending whatever it is handed", () => {
@@ -67,14 +67,19 @@ Deno.test("completeMultipartXml orders parts ascending whatever it is handed", (
   );
 });
 
-Deno.test("completeMultipartXml includes a part checksum when there is one", () => {
-  const xml = completeMultipartXml([{ part_number: 1, etag: '"a"', checksum: "ZmFrZQ==" }]);
-  assertEquals(xml.includes("<ChecksumSHA256>ZmFrZQ==</ChecksumSHA256>"), true);
-});
-
-Deno.test("completeMultipartXml omits the checksum element when the ledger has none", () => {
-  const xml = completeMultipartXml([{ part_number: 1, etag: '"a"', checksum: null }]);
-  assertEquals(xml.includes("ChecksumSHA256"), false);
+Deno.test("completeMultipartXml never carries a per-part checksum", () => {
+  // A FULL_OBJECT checksum is declared in a header on the completion request.
+  // Per-part digests in this document belong to the COMPOSITE scheme, which R2
+  // does not implement, and sending them anyway got a 200 with no checksum at
+  // all — the failure that made this change necessary.
+  const xml = completeMultipartXml([{ part_number: 1, etag: '"a"', checksum: "FsVNRbMAn6I=" }]);
+  assertEquals(xml.includes("Checksum"), false);
+  assertEquals(
+    xml,
+    "<CompleteMultipartUpload>" +
+      "<Part><PartNumber>1</PartNumber><ETag>&quot;a&quot;</ETag></Part>" +
+      "</CompleteMultipartUpload>",
+  );
 });
 
 Deno.test("reconcileChecksum accepts one source, or two that agree", () => {

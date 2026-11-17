@@ -106,6 +106,8 @@ export interface ResumePlan {
   storage_key: string;
   multipart_upload_id: string | null;
   bytes: number;
+  checksum: string;
+  checksum_algorithm: string;
   part_size_bytes: number | null;
   part_count: number | null;
   bytes_received: number;

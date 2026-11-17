@@ -1,0 +1,40 @@
+import type { ReactNode } from 'react';
+import type { OrgMembership } from '@/lib/context';
+import { color } from '@/lib/ui';
+import { Sidebar } from './Sidebar';
+
+/**
+ * UI-SPEC section 3, `AppShell`: a wrapping row, so the sidebar sits beside
+ * the page on a wide screen and stacks above it on a narrow one.
+ */
+export function AppShell({
+  email,
+  orgs,
+  orgId,
+  isContractor,
+  children,
+}: {
+  email: string;
+  orgs: OrgMembership[];
+  orgId: string;
+  isContractor: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <div style={{ minHeight: '100vh', background: color.adminBg, color: color.text, display: 'flex', flexWrap: 'wrap' }}>
+      <Sidebar email={email} orgs={orgs} orgId={orgId} isContractor={isContractor} />
+      <main id="main" tabIndex={-1}
+        style={{
+          flex: '999 1 560px',
+          minWidth: 0,
+          padding: '28px 32px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 20,
+        }}
+      >
+        {children}
+      </main>
+    </div>
+  );
+}

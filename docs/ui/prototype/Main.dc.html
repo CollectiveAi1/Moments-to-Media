@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Contractor home</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&amp;family=Montserrat:wght@500;600&amp;family=Lato:wght@300;400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F7F4EF}
+a{color:#7A7059}a:hover{color:#5C5443}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 844px; overflow: hidden; background: #F7F4EF; color: #1F1F1F; font-family: Lato, system-ui, sans-serif; box-sizing: border-box">
+  <div style="padding: 20px 20px 120px; display: flex; flex-direction: column; gap: 20px">
+    <header style="display: flex; justify-content: space-between; align-items: center">
+      <div style="display: flex; align-items: center; gap: 12px">
+        <img src="/_blob/2309bc35eb5e0b0621a4d8acb2cba231" alt="Moments to Media" style="width: 52px; height: 52px; display: block">
+        <h1 style="margin: 0; font-family: 'Cinzel', serif; font-size: 24px; font-weight: 600">Hi, Jordan</h1>
+      </div>
+      <a href="Profile.dc.html" aria-label="Your profile" style="width: 44px; height: 44px; border-radius: 22px; background: #EFEAE2; border: 1px solid #D9D2C7; display: flex; align-items: center; justify-content: center; color: #1F1F1F; text-decoration: none; font-family: Montserrat, sans-serif; font-weight: 600; font-size: 14px">JL</a>
+    </header>
+
+    <section aria-label="Next up" style="background: #FFFDF9; border: 1px solid #D9D2C7; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; justify-content: space-between; align-items: center">
+        <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; font-family: Montserrat, sans-serif; color: #7A7059">Tonight · Lead video</span>
+        <span style="font-size: 12px; color: #6B655A">Call in 2h 15m</span>
+      </div>
+      <h2 style="margin: 0; font-family: 'Cinzel', serif; font-size: 22px; font-weight: 600; line-height: 1.2">Harbor &amp; Pine product launch</h2>
+      <div style="display: flex; flex-direction: column; gap: 8px; font-size: 14px; color: #3F3B35">
+        <div style="display: flex; gap: 10px; align-items: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B655A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Call 5:30 PM · Wrap 9:30 PM</div>
+        <div style="display: flex; gap: 10px; align-items: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B655A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>The Foundry, 88 Water St</div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+        <a href="Packet.dc.html" style="height: 48px; border-radius: 12px; background: #1F1F1F; color: #FFFDF9; font-family: Montserrat, sans-serif; font-weight: 600; font-size: 14px; display: flex; align-items: center; justify-content: center; text-decoration: none">Open packet</a>
+        <a href="Packet.dc.html" style="height: 48px; border-radius: 12px; background: #EFEAE2; color: #1F1F1F; font-family: Montserrat, sans-serif; font-weight: 600; font-size: 14px; display: flex; align-items: center; justify-content: center; text-decoration: none">Directions</a>
+      </div>
+    </section>
+
+    <section aria-label="Needs you" style="display: flex; flex-direction: column; gap: 10px">
+      <h3 style="margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; font-family: Montserrat, sans-serif; color: #6B655A">Needs you</h3>
+
+      <sc-if value="{{ pending }}" hint-placeholder-val="{{ true }}">
+        <div style="background: #FFFDF9; border: 1px solid #D4A5A5; border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+          <div style="display: flex; flex-direction: column; gap: 4px">
+            <span style="font-size: 12px; font-weight: 700; color: #9C5F5F">You were selected · confirm by 9:00 PM</span>
+            <span style="font-size: 16px; font-weight: 700">Photo · Northline Bank gala</span>
+            <span style="font-size: 13px; color: #6B655A">Sat Nov 21 · 6:00–11:00 PM · $90/hr</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+            <button type="button" onClick="{{ confirm }}" style="height: 44px; border-radius: 10px; border: 0; background: #1F1F1F; color: #FFFDF9; font: 600 14px Montserrat, sans-serif; cursor: pointer">Confirm</button>
+            <button type="button" onClick="{{ decline }}" style="height: 44px; border-radius: 10px; border: 1px solid #D9D2C7; background: transparent; color: #1F1F1F; font: 600 14px Montserrat, sans-serif; cursor: pointer">Decline</button>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ confirmed }}" hint-placeholder-val="{{ false }}">
+        <div style="background: #EEF0E9; border: 1px solid #C9CEBF; border-radius: 14px; padding: 16px; display: flex; gap: 12px; align-items: center">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B6A4A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>
+          <div style="display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 15px; font-weight: 700">Confirmed: Northline Bank gala</span>
+            <span style="font-size: 13px; color: #3F4A33">Packet unlocked and added to your calendar</span>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ declined }}" hint-placeholder-val="{{ false }}">
+        <div style="background: #FFFDF9; border: 1px solid #D9D2C7; border-radius: 14px; padding: 16px; font-size: 14px; color: #6B655A">Declined. The producer has been told so they can pick the next candidate.</div>
+      </sc-if>
+
+      <a href="Upload.dc.html" style="background: #FFFDF9; border: 1px solid #D9D2C7; border-radius: 14px; padding: 16px; display: flex; justify-content: space-between; align-items: center; text-decoration: none; color: #1F1F1F">
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 12px; font-weight: 700; color: #9C5F5F">Upload due in 18 hours</span>
+          <span style="font-size: 15px; font-weight: 700">Westside Expo · raw footage</span>
+        </div>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B655A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+      </a>
+    </section>
+
+    <section aria-label="Upcoming" style="display: flex; flex-direction: column; gap: 6px">
+      <h3 style="margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; font-family: Montserrat, sans-serif; color: #6B655A">Upcoming</h3>
+      <div style="display: flex; gap: 14px; align-items: center; padding: 12px 0; border-bottom: 1px solid #E6E0D6">
+        <div style="width: 48px; display: flex; flex-direction: column; align-items: center"><span style="font-family: Montserrat, sans-serif; font-size: 11px; color: #6B655A">SAT</span><span style="font-family: 'Cinzel', serif; font-size: 20px; font-weight: 600">21</span></div>
+        <div style="display: flex; flex-direction: column; gap: 2px; flex: 1"><span style="font-size: 15px; font-weight: 700">Northline Bank gala</span><span style="font-size: 13px; color: #6B655A">Photo · Vault Hall</span></div>
+        <span style="font-size: 12px; font-weight: 700; color: {{ northlineColor }}">{{ northlineStatus }}</span>
+      </div>
+      <div style="display: flex; gap: 14px; align-items: center; padding: 12px 0; border-bottom: 1px solid #E6E0D6">
+        <div style="width: 48px; display: flex; flex-direction: column; align-items: center"><span style="font-family: Montserrat, sans-serif; font-size: 11px; color: #6B655A">FRI</span><span style="font-family: 'Cinzel', serif; font-size: 20px; font-weight: 600">27</span></div>
+        <div style="display: flex; flex-direction: column; gap: 2px; flex: 1"><span style="font-size: 15px; font-weight: 700">Westbrook HS senior night</span><span style="font-size: 13px; color: #6B655A">Video · Westbrook stadium</span></div>
+        <span style="font-size: 12px; font-weight: 700; color: #5B6A4A">Confirmed</span>
+      </div>
+    </section>
+  </div>
+
+  <nav aria-label="Main" style="position: absolute; left: 0; right: 0; bottom: 0; height: 84px; background: #FFFDF9; border-top: 1px solid #D9D2C7; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding-top: 8px; box-sizing: border-box">
+    <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; color: #1F1F1F; text-decoration: none; font-family: Montserrat, sans-serif; font-size: 11px; font-weight: 600; min-height: 44px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Home</a>
+    <a href="JobBoard.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; color: #6B655A; text-decoration: none; font-family: Montserrat, sans-serif; font-size: 11px; font-weight: 500; min-height: 44px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></svg>Jobs</a>
+    <a href="Upload.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; color: #6B655A; text-decoration: none; font-family: Montserrat, sans-serif; font-size: 11px; font-weight: 500; min-height: 44px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M6 10l6-6 6 6M4 20h16"/></svg>Uploads</a>
+    <a href="Profile.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; color: #6B655A; text-decoration: none; font-family: Montserrat, sans-serif; font-size: 11px; font-weight: 500; min-height: 44px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Profile</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { status: 'pending' };
+  }
+  renderVals() {
+    const s = this.state.status;
+    return {
+      pending: s === 'pending',
+      confirmed: s === 'confirmed',
+      declined: s === 'declined',
+      northlineStatus: s === 'confirmed' ? 'Confirmed' : s === 'declined' ? 'Declined' : 'Confirm by 9 PM',
+      northlineColor: s === 'confirmed' ? '#5B6A4A' : s === 'declined' ? '#6B655A' : '#9C5F5F',
+      confirm: () => this.setState({ status: 'confirmed' }),
+      decline: () => this.setState({ status: 'declined' })
+    };
+  }
+}
+</script>
+</body>
+</html>

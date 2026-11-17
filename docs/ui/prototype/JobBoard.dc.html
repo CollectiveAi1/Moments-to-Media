@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Job board</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&amp;family=Montserrat:wght@500;600&amp;family=Lato:wght@300;400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F7F4EF}
+a{color:#7A7059}a:hover{color:#5C5443}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 844px; overflow: hidden; background: #F7F4EF; color: #1F1F1F; font-family: Lato, system-ui, sans-serif; box-sizing: border-box">
+  <div style="padding: 24px 20px 120px; display: flex; flex-direction: column; gap: 18px">
+    <header style="display: flex; flex-direction: column; gap: 4px">
+      <h1 style="margin: 0; font-family: 'Cinzel', serif; font-size: 26px; font-weight: 600; line-height: 1.15">Open calls</h1>
+      <p style="margin: 0; font-size: 14px; color: #6B655A">3 jobs match your area, gear and documents</p>
+    </header>
+    <div role="group" aria-label="Filter jobs" style="display: flex; gap: 8px; flex-wrap: wrap">
+      <sc-for list="{{ filters }}" as="f" hint-placeholder-count="4">
+        <button type="button" onClick="{{ f.pick }}" aria-pressed="{{ f.on }}" style="{{ f.style }}">{{ f.label }}</button>
+      </sc-for>
+    </div>
+    <a href="JobDetail.dc.html" style="background: #FFFDF9; border: 1px solid #D9D2C7; border-radius: 14px; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 10px; text-decoration: none; color: #1F1F1F">
+      <div style="display: flex; justify-content: space-between; align-items: center">
+        <span style="margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; font-family: Montserrat, sans-serif; color: #7A7059">Lead video</span>
+        <span style="font-family: 'Cinzel', serif; font-size: 18px; font-weight: 600">$650 flat</span>
+      </div>
+      <span style="font-size: 17px; font-weight: 700">Ohio Valley Tech Summit</span>
+      <span style="font-size: 13px; color: #3F3B35">Tue Nov 17 · 7:30 AM–4:00 PM · Downtown</span>
+      <div style="display: flex; gap: 6px; flex-wrap: wrap"><span style="font-size: 12px; padding: 4px 8px; border-radius: 6px; background: #EFEAE2; color: #3F3B35">Cinema camera</span><span style="font-size: 12px; padding: 4px 8px; border-radius: 6px; background: #EFEAE2; color: #3F3B35">Wireless lav kit</span></div>
+      <span style="font-size: 12px; font-weight: 700; color: #9C5F5F">Interest closes in 1 day</span>
+    </a>
+    <a href="JobDetail.dc.html" style="background: #FFFDF9; border: 1px solid #D9D2C7; border-radius: 14px; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 10px; text-decoration: none; color: #1F1F1F">
+      <div style="display: flex; justify-content: space-between; align-items: center">
+        <span style="margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; font-family: Montserrat, sans-serif; color: #7A7059">Photo</span>
+        <span style="font-family: 'Cinzel', serif; font-size: 18px; font-weight: 600">$90/hr</span>
+      </div>
+      <span style="font-size: 17px; font-weight: 700">Crane &amp; Co. holiday party</span>
+      <span style="font-size: 13px; color: #3F3B35">Fri Dec 4 · 6:00–10:00 PM · Short North</span>
+      <div style="display: flex; gap: 6px; flex-wrap: wrap"><span style="font-size: 12px; padding: 4px 8px; border-radius: 6px; background: #EFEAE2; color: #3F3B35">Full-frame body</span><span style="font-size: 12px; padding: 4px 8px; border-radius: 6px; background: #EFEAE2; color: #3F3B35">Speedlight</span></div>
+      <span style="font-size: 12px; font-weight: 700; color: #6B655A">Interest closes Nov 25</span>
+    </a>
+    <a href="JobDetail.dc.html" style="background: #FFFDF9; border: 1px solid #D9D2C7; border-radius: 14px; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 10px; text-decoration: none; color: #1F1F1F">
+      <div style="display: flex; justify-content: space-between; align-items: center">
+        <span style="margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; font-family: Montserrat, sans-serif; color: #7A7059">Drone</span>
+        <span style="font-family: 'Cinzel', serif; font-size: 18px; font-weight: 600">$400 flat</span>
+      </div>
+      <span style="font-size: 17px; font-weight: 700">Riverside ribbon cutting</span>
+      <span style="font-size: 13px; color: #3F3B35">Sat Dec 5 · 10:00 AM–12:00 PM · Riverside</span>
+      <div style="display: flex; gap: 6px; flex-wrap: wrap"><span style="font-size: 12px; padding: 4px 8px; border-radius: 6px; background: #EFEAE2; color: #3F3B35">Drone</span><span style="font-size: 12px; padding: 4px 8px; border-radius: 6px; background: #EFEAE2; color: #3F3B35">Part 107 certificate</span></div>
+      <span style="font-size: 12px; font-weight: 700; color: #6B655A">Interest closes Nov 30</span>
+    </a>
+  </div>
+  <nav aria-label="Main" style="position: absolute; left: 0; right: 0; bottom: 0; height: 84px; background: #FFFDF9; border-top: 1px solid #D9D2C7; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding-top: 8px; box-sizing: border-box">
+    <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; color: #6B655A; text-decoration: none; font-family: Montserrat, sans-serif; font-size: 11px; font-weight: 500; min-height: 44px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Home</a>
+    <a href="JobBoard.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; color: #1F1F1F; text-decoration: none; font-family: Montserrat, sans-serif; font-size: 11px; font-weight: 600; min-height: 44px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></svg>Jobs</a>
+    <a href="Upload.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; color: #6B655A; text-decoration: none; font-family: Montserrat, sans-serif; font-size: 11px; font-weight: 500; min-height: 44px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M6 10l6-6 6 6M4 20h16"/></svg>Uploads</a>
+    <a href="Profile.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; color: #6B655A; text-decoration: none; font-family: Montserrat, sans-serif; font-size: 11px; font-weight: 500; min-height: 44px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Profile</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { picked: 'all' };
+  }
+  renderVals() {
+    const base = 'height: 36px; padding: 0 14px; border-radius: 18px; font: 600 13px Montserrat, sans-serif; cursor: pointer; ';
+    const list = [
+      { id: 'all', label: 'All' },
+      { id: 'week', label: 'This week' },
+      { id: 'video', label: 'Video' },
+      { id: 'photo', label: 'Photo' }
+    ];
+    return {
+      filters: list.map((f) => {
+        const on = this.state.picked === f.id;
+        return {
+          label: f.label,
+          on: on ? 'true' : 'false',
+          style: base + (on ? 'background: #1F1F1F; color: #FFFDF9; border: 1px solid #1F1F1F' : 'background: transparent; color: #3F3B35; border: 1px solid #D9D2C7'),
+          pick: () => this.setState({ picked: f.id })
+        };
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>

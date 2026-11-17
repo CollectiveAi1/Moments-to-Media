@@ -5,8 +5,12 @@
  * the database authorizes first and R2 is only touched once it has said yes,
  * so a refusal never leaves an orphaned multipart upload behind.
  *
- *   POST { slot_id, filename, bytes, checksum,
+ *   POST { slot_id, filename, bytes, checksum, part_checksums,
  *          kind?, part_size_bytes?, checksum_algorithm?, presign_count? }
+ *
+ * part_checksums carries the base64 CRC-64/NVME digest of each part being
+ * signed. It is required for the first batch: the value is signed into the
+ * part URL, so R2 verifies each part as it arrives rather than at the end.
  */
 
 import { asCaller, asService, type UploadPlan } from "../_shared/db.ts";
@@ -21,7 +25,8 @@ import {
   requireString,
   toResponse,
 } from "../_shared/http.ts";
-import { DEFAULT_PRESIGN_SECONDS, R2 } from "../_shared/r2.ts";
+import { readPartChecksums, requirePartChecksum } from "../_shared/parts.ts";
+import { CHECKSUM_ALGORITHM, DEFAULT_PRESIGN_SECONDS, R2 } from "../_shared/r2.ts";
 
 /** A 50 GB upload is 6,400 parts; signing them all would be a 3 MB response. */
 const DEFAULT_PRESIGN_COUNT = 100;
@@ -37,6 +42,9 @@ Deno.serve(async (req) => {
       Math.max(optionalInteger(body, "presign_count", DEFAULT_PRESIGN_COUNT), 1),
       MAX_PRESIGN_COUNT,
     );
+    // Shape-checked before anything is created, so a malformed body costs
+    // nothing but a 400.
+    const partChecksums = readPartChecksums(body.part_checksums);
 
     const env = readEnv();
     const caller = asCaller(env, authorization);
@@ -51,8 +59,28 @@ Deno.serve(async (req) => {
       p_checksum: requireString(body, "checksum"),
       p_kind: body.kind ?? "raw",
       p_part_size_bytes: body.part_size_bytes ?? null,
-      p_checksum_algorithm: body.checksum_algorithm ?? "sha256",
+      // Only crc64nvme round-trips through R2 for a multipart object; the
+      // column still allows the others so older rows stay readable.
+      p_checksum_algorithm: body.checksum_algorithm ?? CHECKSUM_ALGORITHM,
     });
+
+    // ---- every part in the first batch must have a checksum before R2 is
+    // touched; otherwise a client that forgot them leaves an open multipart
+    // upload and a row pinning the assignment behind the in-flight guard.
+    const batch = plan.parts.slice(0, presignCount);
+    let signable: Array<{ part: { part_number: number; bytes: number }; checksum: string }>;
+    try {
+      signable = batch.map((part) => ({
+        part,
+        checksum: requirePartChecksum(partChecksums, part.part_number),
+      }));
+    } catch (err) {
+      await service("fail_upload", {
+        p_upload: plan.upload_id,
+        p_reason: `the first batch of parts was not covered by part_checksums`,
+      }).catch((e) => console.error("fail_upload after checksum gap failed", e));
+      throw err;
+    }
 
     // ---- only now is it worth an R2 call
     let uploadId: string;
@@ -85,12 +113,14 @@ Deno.serve(async (req) => {
     }
 
     // ---- the first window of part URLs; the rest come from upload-presign
-    const batch = plan.parts.slice(0, presignCount);
     const urls = await Promise.all(
-      batch.map(async (part) => ({
+      signable.map(async ({ part, checksum }) => ({
         part_number: part.part_number,
         bytes: part.bytes,
-        url: await r2.presignPart(plan.storage_key, uploadId, part.part_number),
+        // Echoed back because the client must send exactly this value as
+        // x-amz-checksum-crc64nvme; it is inside the signature.
+        checksum,
+        url: await r2.presignPart(plan.storage_key, uploadId, part.part_number, checksum),
       })),
     );
 

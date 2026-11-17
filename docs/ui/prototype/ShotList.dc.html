@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Shot list: Harbor &amp; Pine launch</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&amp;family=Montserrat:wght@500;600&amp;family=Lato:wght@300;400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F7F4EF}
+a{color:#7A7059}a:hover{color:#5C5443}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 1060px; overflow: hidden; background: #F7F4EF; color: #1F1F1F; font-family: Lato, system-ui, sans-serif; box-sizing: border-box">
+  <div style="padding: 16px 20px 160px; display: flex; flex-direction: column; gap: 14px">
+    <a href="Packet.dc.html" style="display: flex; align-items: center; gap: 6px; height: 44px; color: #3F3B35; text-decoration: none; font-family: Montserrat, sans-serif; font-size: 14px; font-weight: 500"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>Event packet</a>
+    <header style="display: flex; flex-direction: column; gap: 10px">
+      <h1 style="margin: 0; font-family: 'Cinzel', serif; font-size: 26px; font-weight: 600; line-height: 1.15">Shot list</h1>
+      <div style="display: flex; justify-content: space-between; font-size: 14px; color: #3F3B35"><span>{{ doneLine }}</span><span style="font-weight: 700; color: {{ mustColor }}">{{ mustLine }}</span></div>
+      <div style="height: 6px; border-radius: 3px; background: #E6E0D6; overflow: hidden"><div style="height: 6px; background: #6E7360; width: {{ pct }}"></div></div>
+    </header>
+    <div style="margin-top: 6px"><h2 style="margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; font-family: Montserrat, sans-serif; color: #9C5F5F">Must-have</h2></div>
+    <sc-for list="{{ musts }}" as="s" hint-placeholder-count="5">
+      <button type="button" onClick="{{ s.toggle }}" aria-pressed="{{ s.pressed }}" style="display: flex; gap: 14px; align-items: flex-start; text-align: left; padding: 14px; border-radius: 12px; border: 1px solid #D9D2C7; background: #FFFDF9; color: #1F1F1F; font: 15px Lato, sans-serif; cursor: pointer; min-height: 56px">
+        <span style="{{ s.box }}"><sc-if value="{{ s.done }}" hint-placeholder-val="{{ false }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFDF9" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg></sc-if></span>
+        <span style="display: flex; flex-direction: column; gap: 2px"><span style="{{ s.labelStyle }}">{{ s.label }}</span><span style="font-size: 12px; color: #6B655A">{{ s.hint }}</span></span>
+      </button>
+    </sc-for>
+    <div style="margin-top: 8px"><h2 style="margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; font-family: Montserrat, sans-serif; color: #6B655A">Also get</h2></div>
+    <sc-for list="{{ extras }}" as="s" hint-placeholder-count="5">
+      <button type="button" onClick="{{ s.toggle }}" aria-pressed="{{ s.pressed }}" style="display: flex; gap: 14px; align-items: flex-start; text-align: left; padding: 14px; border-radius: 12px; border: 1px solid #E6E0D6; background: transparent; color: #1F1F1F; font: 15px Lato, sans-serif; cursor: pointer; min-height: 56px">
+        <span style="{{ s.box }}"><sc-if value="{{ s.done }}" hint-placeholder-val="{{ false }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFDF9" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg></sc-if></span>
+        <span style="display: flex; flex-direction: column; gap: 2px"><span style="{{ s.labelStyle }}">{{ s.label }}</span><span style="font-size: 12px; color: #6B655A">{{ s.hint }}</span></span>
+      </button>
+    </sc-for>
+  </div>
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 16px 20px 28px; background: #F7F4EF; border-top: 1px solid #D9D2C7; display: flex; flex-direction: column; gap: 10px; gap: 8px">
+    <span style="font-size: 13px; font-weight: 700; color: {{ mustColor }}; text-align: center">{{ checkoutNote }}</span>
+    <a href="Upload.dc.html" style="{{ checkoutStyle }}">Check out</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1060}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { done: { reveal: true, ceo: true, arrivals: true, signage: true } };
+  }
+  renderVals() {
+    const all = [
+      { id: 'reveal', label: 'Product reveal on stage', hint: '7:45 PM · tripod, two angles with Luis', must: true },
+      { id: 'ceo', label: 'CEO welcome remarks, full', hint: '7:00 PM · lav on speaker', must: true },
+      { id: 'room', label: 'Wide of the room at peak', hint: 'Around 8:00 PM', must: true },
+      { id: 'hero', label: 'Product close-ups on display table', hint: 'Before doors, 5:45–6:15 PM', must: true },
+      { id: 'reactions', label: 'Guest reactions at the reveal', hint: 'Handheld, tight', must: true },
+      { id: 'arrivals', label: 'Arrivals at the step-and-repeat', hint: '6:30–7:00 PM', must: false },
+      { id: 'details', label: 'Catering and bar details', hint: 'Close only, no wides of the bar', must: false },
+      { id: 'broll', label: 'Speaker B-roll', hint: 'Hands, crowd, screens', must: false },
+      { id: 'signage', label: 'Exterior signage at dusk', hint: 'Before 5:45 PM', must: false },
+      { id: 'team', label: 'Harbor & Pine team group shot', hint: 'Coordinate with Maya', must: false }
+    ];
+    const done = this.state.done;
+    const box = (d) => 'width: 24px; height: 24px; border-radius: 6px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; ' + (d ? 'background: #6E7360; border: 2px solid #6E7360' : 'background: #FFFDF9; border: 2px solid #A9A399');
+    const map = (s) => {
+      const d = !!done[s.id];
+      return {
+        label: s.label,
+        hint: s.hint,
+        done: d,
+        pressed: d ? 'true' : 'false',
+        box: box(d),
+        labelStyle: d ? 'font-weight: 700; color: #6B655A; text-decoration: line-through' : 'font-weight: 700; color: #1F1F1F',
+        toggle: () => this.setState({ done: { ...this.state.done, [s.id]: !d } })
+      };
+    };
+    const musts = all.filter((s) => s.must);
+    const total = all.filter((s) => done[s.id]).length;
+    const mustDone = musts.filter((s) => done[s.id]).length;
+    const left = musts.length - mustDone;
+    return {
+      musts: musts.map(map),
+      extras: all.filter((s) => !s.must).map(map),
+      doneLine: total + ' of ' + all.length + ' shots',
+      mustLine: mustDone + ' of ' + musts.length + ' must-haves',
+      mustColor: left === 0 ? '#5B6A4A' : '#9C5F5F',
+      pct: Math.round((total / all.length) * 100) + '%',
+      checkoutNote: left === 0 ? 'All must-haves captured' : left + ' must-have' + (left === 1 ? '' : 's') + ' left. Capture or mark not possible before check out.',
+      checkoutStyle: 'height: 52px; border-radius: 14px; font-family: Montserrat, sans-serif; font-weight: 600; font-size: 15px; display: flex; align-items: center; justify-content: center; text-decoration: none; ' + (left === 0 ? 'background: #1F1F1F; color: #FFFDF9' : 'background: #E6E0D6; color: #6B655A; pointer-events: none')
+    };
+  }
+}
+</script>
+</body>
+</html>

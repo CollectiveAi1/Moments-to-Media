@@ -20,8 +20,102 @@ export type UploadStatus = (typeof UPLOAD_STATUSES)[number];
 export const UPLOAD_KINDS = ['raw', 'selects', 'deliverables'] as const;
 export type UploadKind = (typeof UPLOAD_KINDS)[number];
 
-export const UPLOAD_CHECKSUM_ALGORITHMS = ['sha256', 'crc32c'] as const;
+export const UPLOAD_CHECKSUM_ALGORITHMS = ['sha256', 'crc32c', 'crc64nvme'] as const;
 export type UploadChecksumAlgorithm = (typeof UPLOAD_CHECKSUM_ALGORITHMS)[number];
+
+/**
+ * The only one R2 can verify for a multipart object, so the only one an upload
+ * should declare. R2 answers 501 NotImplemented for per-part SHA-256, which
+ * leaves a completed object with no checksum to check at all. CRC-64/NVME as a
+ * FULL_OBJECT checksum is one value over the whole file, so unlike a composite
+ * it does not depend on how the file was split.
+ */
+export const UPLOAD_CHECKSUM_ALGORITHM: UploadChecksumAlgorithm = 'crc64nvme';
+
+const CRC64_MASK = 0xffffffffffffffffn;
+
+/**
+ * CRC-64/NVME is a reflected algorithm, and the polynomial is catalogued in
+ * normal form, so the table is built from the bit-reversed one. Reversing it
+ * here rather than pasting a constant is deliberate: the first attempt pasted
+ * a constant and produced a checksum that passed every test except the
+ * published vector below.
+ */
+const CRC64_POLY = ((): bigint => {
+  let r = 0n;
+  const normal = 0xad93d23594c93659n;
+  for (let i = 0; i < 64; i++) r = (r << 1n) | ((normal >> BigInt(i)) & 1n);
+  return r & CRC64_MASK;
+})();
+
+const CRC64_TABLE: readonly bigint[] = (() => {
+  const t: bigint[] = [];
+  for (let i = 0; i < 256; i++) {
+    let crc = BigInt(i);
+    for (let j = 0; j < 8; j++) crc = crc & 1n ? (crc >> 1n) ^ CRC64_POLY : crc >> 1n;
+    t.push(crc & CRC64_MASK);
+  }
+  return t;
+})();
+
+/**
+ * Streaming CRC-64/NVME. A 50 GB file is never in memory at once, so the state
+ * is passed back in: start with `crc64nvmeInit`, feed chunks, then finish.
+ *
+ * The `as` casts are not laziness. `noUncheckedIndexedAccess` is on, so every
+ * index into the table or the chunk is `T | undefined`, and both are provably
+ * in range here — the table has 256 entries and the index is masked to a byte.
+ */
+export const crc64nvmeInit = CRC64_MASK;
+
+export function crc64nvmeUpdate(crc: bigint, chunk: Uint8Array): bigint {
+  let c = crc;
+  for (let i = 0; i < chunk.length; i++) {
+    const byte = BigInt(chunk[i] as number);
+    const entry = CRC64_TABLE[Number((c ^ byte) & 0xffn)] as bigint;
+    c = (entry ^ (c >> 8n)) & CRC64_MASK;
+  }
+  return c;
+}
+
+export function crc64nvmeFinish(crc: bigint): bigint {
+  return crc ^ CRC64_MASK;
+}
+
+const BASE64_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+
+/**
+ * The base64 form R2 expects in `x-amz-checksum-crc64nvme`: 8 bytes, big-endian.
+ *
+ * Encoded by hand rather than with `btoa` or `Buffer`. This package is shared
+ * by an Expo app, a Next.js server and Deno functions, and `btoa` is a DOM
+ * global that `lib: ["ES2022"]` does not declare while `Buffer` is Node-only.
+ * Eight bytes is not worth a dependency or a platform assumption.
+ */
+export function crc64nvmeToBase64(crc: bigint): string {
+  const bytes = new Uint8Array(8);
+  for (let i = 0; i < 8; i++) bytes[i] = Number((crc >> BigInt((7 - i) * 8)) & 0xffn);
+
+  let out = '';
+  for (let i = 0; i < bytes.length; i += 3) {
+    const b0 = bytes[i] as number;
+    const hasB1 = i + 1 < bytes.length;
+    const hasB2 = i + 2 < bytes.length;
+    const b1 = hasB1 ? (bytes[i + 1] as number) : 0;
+    const b2 = hasB2 ? (bytes[i + 2] as number) : 0;
+
+    out += BASE64_ALPHABET[b0 >> 2] as string;
+    out += BASE64_ALPHABET[((b0 & 0x03) << 4) | (b1 >> 4)] as string;
+    out += hasB1 ? (BASE64_ALPHABET[((b1 & 0x0f) << 2) | (b2 >> 6)] as string) : '=';
+    out += hasB2 ? (BASE64_ALPHABET[b2 & 0x3f] as string) : '=';
+  }
+  return out;
+}
+
+/** One-shot, for a part held in memory. */
+export function crc64nvmeBase64(data: Uint8Array): string {
+  return crc64nvmeToBase64(crc64nvmeFinish(crc64nvmeUpdate(crc64nvmeInit, data)));
+}
 
 /** R2 follows S3's multipart limits. */
 export const MIN_PART_BYTES = 5 * 1024 * 1024;
@@ -111,4 +205,51 @@ export function isUsableFilename(filename: string): boolean {
     !/[/\\]/.test(filename) &&
     !filename.startsWith('.')
   );
+}
+
+// ------------------------------------------------- CRC-64/NVME, fast path
+//
+// The BigInt implementation above is the readable reference. It allocates a
+// BigInt per byte, which is fine for a part held in memory and far too slow
+// for a browser hashing a video. This is the same algorithm on the register
+// split into two 32-bit halves with plain numbers, checked against the
+// reference and the published vector in uploads.test.ts.
+
+const FAST_LO = new Uint32Array(256);
+const FAST_HI = new Uint32Array(256);
+for (let i = 0; i < 256; i++) {
+  const entry = CRC64_TABLE[i] as bigint;
+  FAST_LO[i] = Number(entry & 0xffffffffn);
+  FAST_HI[i] = Number(entry >> 32n);
+}
+
+/** A running CRC-64/NVME register, as two unsigned 32-bit halves. */
+export interface Crc64State {
+  hi: number;
+  lo: number;
+}
+
+export const crc64Start = (): Crc64State => ({ hi: 0xffffffff, lo: 0xffffffff });
+
+/** Folds bytes into the register, in place. */
+export function crc64Update(state: Crc64State, chunk: Uint8Array): Crc64State {
+  let hi = state.hi;
+  let lo = state.lo;
+  for (let i = 0; i < chunk.length; i++) {
+    const index = (lo ^ (chunk[i] as number)) & 0xff;
+    const nextLo = ((lo >>> 8) | ((hi & 0xff) << 24)) >>> 0;
+    const nextHi = hi >>> 8;
+    lo = (nextLo ^ (FAST_LO[index] as number)) >>> 0;
+    hi = (nextHi ^ (FAST_HI[index] as number)) >>> 0;
+  }
+  state.hi = hi;
+  state.lo = lo;
+  return state;
+}
+
+/** Finalises the register into the base64 form R2 expects. */
+export function crc64Base64(state: Crc64State): string {
+  const hi = (state.hi ^ 0xffffffff) >>> 0;
+  const lo = (state.lo ^ 0xffffffff) >>> 0;
+  return crc64nvmeToBase64((BigInt(hi) << 32n) | BigInt(lo));
 }
