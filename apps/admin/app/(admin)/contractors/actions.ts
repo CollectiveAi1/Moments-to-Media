@@ -3,7 +3,7 @@
 import type { ActionResult } from '@/lib/action-types';
 import { requireAdmin } from '@/lib/context';
 import { fail, failWith, ok, text } from '@/lib/errors';
-import { settle } from '@/lib/mutate';
+import { settle, succeed } from '@/lib/mutate';
 import { sendSignInLink } from '@/lib/supabase/mailer';
 import { revalidatePath } from 'next/cache';
 
@@ -35,12 +35,12 @@ export async function inviteMember(_p: ActionResult, form: FormData): Promise<Ac
   }
   revalidatePath('/', 'layout');
 
-  if (form.get('send') !== 'on') return ok(`${email} is invited as ${role}. They can sign in at any time with that address.`);
+  if (form.get('send') !== 'on') return succeed(`${email} is invited as ${role}. They can sign in at any time with that address.`);
   const sent = await sendSignInLink(email);
   if (sent.error) {
-    return ok(`${email} is invited as ${role}, but the email could not be sent (${sent.error.status === 429 ? 'the hourly email limit was reached' : sent.error.message}). They can sign in from the sign-in page with that address.`);
+    return succeed(`${email} is invited as ${role}, but the email could not be sent (${sent.error.status === 429 ? 'the hourly email limit was reached' : sent.error.message}). They can sign in from the sign-in page with that address.`);
   }
-  return ok(`${email} is invited as ${role} and has been sent a sign-in link.`);
+  return succeed(`${email} is invited as ${role} and has been sent a sign-in link.`);
 }
 
 export async function resendInvite(_p: ActionResult, form: FormData): Promise<ActionResult> {
@@ -49,7 +49,7 @@ export async function resendInvite(_p: ActionResult, form: FormData): Promise<Ac
   if (!email) return fail('Missing address.');
   const sent = await sendSignInLink(email);
   if (sent.error) return fail(sent.error.status === 429 ? 'The hourly email limit was reached. Try again later.' : sent.error.message);
-  return ok(`Sign-in link sent to ${email}.`);
+  return succeed(`Sign-in link sent to ${email}.`);
 }
 
 export async function revokeInvite(_p: ActionResult, form: FormData): Promise<ActionResult> {

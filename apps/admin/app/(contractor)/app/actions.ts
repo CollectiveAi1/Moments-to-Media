@@ -3,7 +3,7 @@
 import type { ActionResult } from '@/lib/action-types';
 import { requireContractor } from '@/lib/context';
 import { cents, fail, failWith, int, ok, text } from '@/lib/errors';
-import { settle } from '@/lib/mutate';
+import { settle, succeed } from '@/lib/mutate';
 
 const UUID = /^[0-9a-f-]{36}$/i;
 const idOf = (form: FormData, name: string) => {
@@ -82,7 +82,7 @@ export async function runningLate(_p: ActionResult, form: FormData): Promise<Act
   const { data, error } = await viewer.supabase.rpc('report_running_late', { p_assignment: id, p_minutes: minutes });
   if (error) return failWith(error);
   const r = (data ?? {}) as { producer_name?: string };
-  return ok(`ETA of ${minutes} minutes sent to ${r.producer_name ?? 'the producer'} (producer).`);
+  return succeed(`ETA of ${minutes} minutes sent to ${r.producer_name ?? 'the producer'} (producer).`);
 }
 
 export async function setShot(_p: ActionResult, form: FormData): Promise<ActionResult> {

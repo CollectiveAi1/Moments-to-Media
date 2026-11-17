@@ -6,9 +6,10 @@ import { color, radius } from '@/lib/ui';
 import { buttonStyle, type ButtonVariant } from './ui';
 
 /**
- * A form bound to a server action. It shows the action is running, shows what
- * came back, and keeps the person on the page: every action returns a message
- * rather than redirecting, so a refusal from the database reads in place.
+ * A form bound to a server action. It shows the action is running and keeps
+ * the person on the page. A refusal reads in place, beside the button; a
+ * success is announced at the top of the page by FlashNotice, because many
+ * actions remove their own button and would take the message with it.
  */
 export function ActionForm({
   action,
@@ -21,7 +22,6 @@ export function ActionForm({
   layout = 'stack',
   style,
   buttonStyle: buttonOverride,
-  hideMessageOnSuccess = false,
 }: {
   action: Action;
   submit: ReactNode;
@@ -35,7 +35,6 @@ export function ActionForm({
   layout?: 'stack' | 'inline';
   style?: CSSProperties;
   buttonStyle?: CSSProperties;
-  hideMessageOnSuccess?: boolean;
 }) {
   const [state, run, pending] = useActionState<ActionResult, FormData>(action, null);
   const form = useRef<HTMLFormElement>(null);
@@ -45,7 +44,7 @@ export function ActionForm({
   }, [reset, state]);
 
   const inline = layout === 'inline';
-  const showMessage = state && !(state.ok && hideMessageOnSuccess);
+  const showMessage = state && !state.ok;
 
   return (
     <form

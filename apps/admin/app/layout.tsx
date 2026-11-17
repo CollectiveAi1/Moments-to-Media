@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { Cinzel, Lato, Montserrat } from 'next/font/google';
+import { cookies } from 'next/headers';
 import type { ReactNode } from 'react';
+import { FlashNotice } from '@/components/FlashNotice';
 import { color, fonts } from '@/lib/ui';
 
 // UI-SPEC "Fonts": Cinzel 600, Montserrat 500/600, Lato 400/700.
@@ -26,13 +28,23 @@ a:hover{color:${color.labelHover}}
 button,input,select{font:inherit}
 `;
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const raw = (await cookies()).get('mtm_flash')?.value;
+  let flash: string | null = null;
+  try {
+    flash = raw ? decodeURIComponent(raw) : null;
+  } catch {
+    flash = null;
+  }
   return (
     <html lang="en" className={`${heading.variable} ${label.variable} ${body.variable}`}>
       <head>
         <style dangerouslySetInnerHTML={{ __html: base }} />
       </head>
-      <body>{children}</body>
+      <body>
+        <FlashNotice message={flash} />
+        {children}
+      </body>
     </html>
   );
 }
