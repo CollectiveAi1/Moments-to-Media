@@ -163,7 +163,7 @@ async function main() {
   section('Signed out');
   for (const p of ['/leads', '/proposals', '/invoices', '/clients', '/packages', '/portal']) {
     const r = await fetch(`${BASE}${p}`, { redirect: 'manual' });
-    check(`${p} sends a signed-out visitor to sign in`, r.status === 307 && (r.headers.get('location') ?? '').endsWith('/sign-in'), r.status);
+    check(`${p} sends a signed-out visitor to sign in`, r.status === 307 && (r.headers.get('location') ?? '').endsWith(p === '/portal' ? '/login/client' : '/login/admin'), r.status);
   }
 
   section('Console pages, as a producer');
@@ -247,7 +247,7 @@ async function main() {
   r = await submit(anon, `/p/${token}`, html, `Sign and book · ${/Sign and book · ([^<]+)/.exec(html)?.[1]?.trim() ?? ''}`, { ...signFields, signature: `Client QA ${stamp}` });
   check('signing books it', r.status === 303 && (r.location ?? '').includes('signed=1'), r);
   html = await fetch(`${BASE}/p/${token}?signed=1`).then((x) => x.text());
-  check('the signed page confirms and points to the portal', textOf(html).includes('You’re booked!') && textOf(html).includes('Open my client portal'));
+  check('the signed page confirms and points to the portal', textOf(html).includes('You’re booked!') && textOf(html).includes('Create my portal account'));
   check('the total includes the add-on and tax ($3,110.25)', textOf(html).includes('$3,110.25'), textOf(html).slice(0, 400));
 
   section('What signing created, in the console');

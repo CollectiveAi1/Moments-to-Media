@@ -93,7 +93,7 @@ Sign-in is email and password, with a separate sign-in for each portal:
   - nobody can sign up as an owner or producer.
 - Owners turn crew and client sign-up on or off in Settings.
 - Forgot password (`/forgot`) emails a link to `/account/password`. Anyone invited before passwords existed, or who used email links, sets their first password this way, or on first arrival from an invitation link.
-- Tests: `supabase/tests/13_password_accounts.test.sql` (31 checks).
+- Tests: `supabase/tests/13_password_accounts.test.sql` (31 checks) and `scripts/qa/login_live.ts` (45 checks through the live sign-in forms).
 
 **Supabase Auth settings this relies on** (owner step, dashboard → Authentication):
 - *Confirm email* must stay **on**. If it were off, an account would count as confirmed without anyone opening the email, and client matching by email would not be safe.
