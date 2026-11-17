@@ -149,6 +149,10 @@ async function main() {
   check('sample inquiries are there', textOf(p.html).includes('Jordan Ellis') && textOf(p.html).includes('Priya & Sam'));
   p = await get(d.who, '/packages');
   check('sample packages are there', textOf(p.html).includes('Full-day wedding film'));
+  const evs = await get(d.who, '/events?show=all');
+  const eng = new RegExp('href="/events/([0-9a-f-]{36})"[^>]*>Harper &amp; Lee engagement session').exec(evs.html)?.[1];
+  p = await get(d.who, `/events/${eng}/deliver`);
+  check('Deliver to client lists the studio’s own delivery and offers the uploader', p.status === 200 && textOf(p.html).includes('HarperLee_Engagement_Highlight_Still.jpg') && textOf(p.html).includes('Upload finished files') && textOf(p.html).includes('With the client'), { eng, status: p.status });
   let r = await post(d.who, '/contractors', 'Send invitation', { email: 'someone@example.com' });
   check('the demo admin cannot send invitation emails', r.text.includes('Demo accounts can’t send emails'), r.text.slice(0, 300));
   r = await post(d.who, '/board', 'Try another portal', {});
@@ -173,6 +177,8 @@ async function main() {
   const inv = /\/portal\/invoices\/[0-9a-f-]{36}/.exec(p.html)?.[0] ?? '';
   p = await get(d.who, inv);
   check('the invoice shows the paid deposit and the schedule', textOf(p.html).includes('Deposit to book') && textOf(p.html).includes('Paid') && textOf(p.html).includes('Check'));
+  p = await get(d.who, '/portal/media');
+  check('the Media tab shows the studio delivery with the crew photos', textOf(p.html).includes('HarperLee_Engagement_Highlight_Still.jpg') && textOf(p.html).includes('5 files'), textOf(p.html).slice(0, 300));
   p = await get(d.who, '/portal/messages');
   check('the studio’s message is there', textOf(p.html).includes('Your deposit is in'));
   const proj = /\/portal\/projects\/[0-9a-f-]{36}/.exec((await get(d.who, '/portal')).html)?.[0] ?? '';

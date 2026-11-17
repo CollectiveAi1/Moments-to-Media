@@ -127,3 +127,7 @@ The sign-in page shows a **Demo mode** panel with one button per portal. Each si
 - **Original footage:** kind `raw`.
 
 Each file has a Download button, a private 15-minute link straight from R2. A file appears once two things are true: the contractor's work on it is approved, and the producer has clicked **Release approved media to the client** on the event (`public.client_media` decides). The overview shows a "Your media is ready" card that links here.
+
+## Studio delivery
+
+**Events → an event → Upload finished files** opens **Deliver to client** (`/events/<id>/deliver`). The event's producer or an owner uploads final edits and selects straight to the client's project, outside any crew assignment. Contractors cannot. The files use the same resumable, checksum-verified upload to R2 as crew footage (`start_upload` with the event id). Once the project is released (**Send to client**), they appear in the client's Media tab next to approved crew files. Delivered files can be removed again. Browser uploads need the R2 CORS rule, the same as crew uploads.

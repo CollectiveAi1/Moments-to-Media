@@ -158,7 +158,7 @@ async function main() {
 
   section('Admin sign-in');
   let s = await login('admin', env('QA_PRODUCER_EMAIL'), 'wrong-password-123');
-  check('a wrong password is refused, without saying which part was wrong', s.r.text.includes('do not match'), s.r.text.slice(0, 200));
+  check('a wrong password is refused, without saying which part was wrong', s.r.text.includes('Wrong email or password.'), s.r.text.slice(0, 200));
   s = await login('admin', env('QA_PRODUCER_EMAIL'));
   check('a producer signs in to the admin console', s.r.status === 303 && s.r.location.endsWith('/board'), s.r);
   let page = await get(s.who, '/board');
