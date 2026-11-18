@@ -3,6 +3,7 @@ import { ActionForm } from '@/components/ActionForm';
 import { Uploader } from '@/components/contractor/Uploader';
 import { Card, Empty, H1, H2, Muted, Notice, StatusText } from '@/components/ui';
 import { requireContractor } from '@/lib/context';
+import { isDemoEmail } from '@/lib/demo';
 import { loadMyJobs } from '@/lib/contractor/load';
 import { bytes, duration, firstName, formatDay } from '@/lib/format';
 import { color } from '@/lib/ui';
@@ -66,7 +67,7 @@ export default async function Uploads() {
               </div>
             ) : null}
 
-            {CAN_UPLOAD.includes(j.status) ? <Uploader slotId={j.slotId} /> : null}
+            {CAN_UPLOAD.includes(j.status) ? (isDemoEmail(viewer.email) ? <Notice tone="warn">Uploads are off in the demo. A real crew account uploads straight to storage from here.</Notice> : <Uploader slotId={j.slotId} />) : null}
 
             {j.status === 'uploaded' ? (
               <Notice>Marked complete with {landed.length} file{landed.length === 1 ? '' : 's'}. The producer is reviewing.</Notice>
