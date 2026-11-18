@@ -388,9 +388,11 @@ begin
   -- supabase/seed.sql before the suite runs, so a fixed slug would collide
   -- with the development seed's organization; the fixture must not assume an
   -- empty database.
-  insert into public.organizations (id, name, slug, in_app_payments_enabled, settings)
+  -- Sign-up is off by default (20261119000200); the fixture opens it so the
+  -- sign-up tests have somewhere to sign up to.
+  insert into public.organizations (id, name, slug, in_app_payments_enabled, contractor_signup, client_signup, settings)
   values (
-    v_org_a, 'Test Org A', 'test-a-' || substr(replace(v_org_a::text, '-', ''), 1, 12), true,
+    v_org_a, 'Test Org A', 'test-a-' || substr(replace(v_org_a::text, '-', ''), 1, 12), true, true, true,
     jsonb_build_object(
       'reminder_hours_before_call', jsonb_build_array(24, 2),
       'invite_window_hours', 24,
@@ -401,8 +403,8 @@ begin
     )
   );
 
-  insert into public.organizations (id, name, slug, in_app_payments_enabled)
-  values (v_org_b, 'Test Org B', 'test-b-' || substr(replace(v_org_b::text, '-', ''), 1, 12), false);
+  insert into public.organizations (id, name, slug, in_app_payments_enabled, contractor_signup, client_signup)
+  values (v_org_b, 'Test Org B', 'test-b-' || substr(replace(v_org_b::text, '-', ''), 1, 12), false, true, true);
 
   -- ---- people
   v_owner_a := tests.new_user('owner_a', 'owner-a@example.test', 'Owner A');
