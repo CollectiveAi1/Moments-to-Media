@@ -1,10 +1,10 @@
-import { Analytics } from '@vercel/analytics/next';
 import type { Metadata } from 'next';
 import { Cinzel, Lato, Montserrat } from 'next/font/google';
 import { cookies } from 'next/headers';
 import type { ReactNode } from 'react';
 import { DemoBanner } from '@/components/auth/DemoBanner';
 import { FlashNotice } from '@/components/FlashNotice';
+import { SiteAnalytics } from '@/components/SiteAnalytics';
 import { DEMO_ACCOUNTS, demoEnabled } from '@/lib/demo';
 import { createClient } from '@/lib/supabase/server';
 import { SITE_URL } from '@/lib/site';
@@ -69,7 +69,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <FlashNotice message={flash} />
         {children}
         {/* Cookieless page-view counts (Vercel Web Analytics); see /privacy. */}
-        <Analytics />
+        <SiteAnalytics />
       </body>
     </html>
   );

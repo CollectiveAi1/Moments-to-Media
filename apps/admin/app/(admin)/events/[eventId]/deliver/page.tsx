@@ -6,6 +6,7 @@ import { DeliverUploader } from './DeliverUploader';
 import { PageHeader } from '@/components/PageHeader';
 import { BackLink, Card, Field, H2, Muted, Notice, Row, StatusText, inputStyle } from '@/components/ui';
 import { requireAdmin } from '@/lib/context';
+import { isDemoEmail } from '@/lib/demo';
 import { bytes, dateTime, formatDay } from '@/lib/format';
 import { color } from '@/lib/ui';
 import { releaseMedia, removeStudioUpload } from '../../../client-actions';
@@ -52,7 +53,7 @@ export default async function DeliverPage({ params }: { params: Promise<{ eventI
         <Card>
           <H2 size={20}>Upload finished files</H2>
           <Muted size={13}>Final edits, highlight films and selects. They go straight to storage from this browser, resume if the connection drops, and are checked byte for byte when they finish.</Muted>
-          {event.client_id ? <DeliverUploader eventId={eventId} /> : <Muted>Set the client first.</Muted>}
+          {!event.client_id ? <Muted>Set the client first.</Muted> : isDemoEmail(viewer.email) ? <Notice tone="warn">Uploads are off in the demo. A real producer uploads finished files straight to storage from here.</Notice> : <DeliverUploader eventId={eventId} />}
         </Card>
 
         <Card highlight={done.length > 0 && !release}>

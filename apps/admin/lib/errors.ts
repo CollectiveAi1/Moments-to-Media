@@ -10,6 +10,14 @@ interface DbError {
 const UUID = /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi;
 
 /**
+ * Postgres' own wording names tables, columns and constraints. Those messages
+ * are replaced, and the original is logged on the server for debugging. The
+ * app's own messages (raised by its database functions) never match these.
+ */
+const INTERNAL = /violates (check|foreign key|not-null|unique|exclusion) constraint|relation "|column "|constraint "|invalid input (syntax|value)|value too long|out of range|permission denied for|syntax error|function .* does not exist|could not|duplicate key/i;
+const GENERIC = 'That could not be saved. Check the details and try again.';
+
+/**
  * Database errors are written for people already: the state machines raise
  * "event … cannot move from draft to complete" and the like. This only takes
  * out the ids, which mean nothing on screen, and maps the two generic codes
@@ -22,6 +30,11 @@ export function friendly(error: DbError | null | undefined): string {
   }
   if (error.code === '23505') return 'That already exists.';
   if (error.code === 'PGRST116') return 'That record was not found, or you cannot see it.';
+
+  if (INTERNAL.test(error.message ?? '') || INTERNAL.test(error.details ?? '')) {
+    console.error('database error shown generically:', error.code, error.message);
+    return GENERIC;
+  }
 
   let message = (error.message ?? 'Something went wrong.').replace(UUID, '').replace(/\s{2,}/g, ' ').trim();
   message = message.replace(/^(event|assignment|payout|slot|upload) (cannot|still|has|is)/i, (_m, noun: string, verb: string) => `This ${noun.toLowerCase()} ${verb}`);

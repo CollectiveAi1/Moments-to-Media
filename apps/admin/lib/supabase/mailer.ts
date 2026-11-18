@@ -1,7 +1,7 @@
 import 'server-only';
 import { createClient } from '@supabase/supabase-js';
-import { headers } from 'next/headers';
 import { supabaseAnonKey, supabaseUrl } from '../env';
+import { SITE_URL } from '../site';
 
 /**
  * Sends a sign-in link to an address, from the server, without touching the
@@ -14,11 +14,14 @@ import { supabaseAnonKey, supabaseUrl } from '../env';
  * link's URL fragment, which never reaches a server, and the sign-in page
  * picks it up in whichever browser opens it.
  */
+/**
+ * Where emailed links send people back to: always the configured site address
+ * (NEXT_PUBLIC_SITE_URL), never the request's Host or X-Forwarded-Host. A
+ * forged header must not be able to point a password-reset link at another
+ * site. Local development sets NEXT_PUBLIC_SITE_URL=http://localhost:3000.
+ */
 export async function siteOrigin(): Promise<string> {
-  const h = await headers();
-  const host = h.get('x-forwarded-host') ?? h.get('host') ?? 'localhost:3000';
-  const proto = h.get('x-forwarded-proto') ?? (host.startsWith('localhost') ? 'http' : 'https');
-  return `${proto}://${host}`;
+  return SITE_URL;
 }
 
 function implicitClient() {

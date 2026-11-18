@@ -5,16 +5,8 @@
 export { formatDay, formatTime } from './board/build';
 import { formatDay, formatTime } from './board/build';
 
-export function money(cents: number | null | undefined): string {
-  if (cents === null || cents === undefined) return '—';
-  const dollars = cents / 100;
-  return dollars.toLocaleString('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: cents % 100 === 0 ? 0 : 2,
-    maximumFractionDigits: 2,
-  });
-}
+export { money } from './money.ts';
+import { money } from './money.ts';
 
 export function rate(rateType: string, centsAmount: number): string {
   const amount = money(centsAmount);
@@ -204,6 +196,8 @@ export const PAYMENT_METHOD: Record<string, string> = {
   bank_transfer: 'Bank transfer / Zelle',
   other: 'Other',
 };
+
+export { paymentAfterNote } from './billing/payment-note.ts';
 
 /** Statuses that mean the contractor is booked on the slot. */
 export const COMMITTED = [

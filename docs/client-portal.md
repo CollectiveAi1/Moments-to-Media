@@ -48,22 +48,31 @@ Producers can also add clients, invoices and inquiries by hand.
 
 ## Switching on card payments (owner, billing setup)
 
-This touches billing, so it is the owner's step. It uses **Moments to Media's own Stripe account** (CLAUDE.md: accounts are in the client's name).
+**Account.** Payments run on **Collective Ai's Stripe account** (`acct_1Ud3PjP1dkhSe6nS`), by the user's decision on 2026-11-18, not on an account in Moments to Media's name. Client payments land in that balance, and Collective Ai is the platform for contractor payouts and 1099s. The account also takes Collective Ai's other payments; the webhook skips anything that is not an invoice payment.
 
-1. In Stripe (test mode first), copy the secret key.
-2. Add a webhook endpoint:
+**Plan** (from Stripe's implementation planner, 2026-11-18): hosted Checkout for clients; Connect as a marketplace with separate charges and transfers for contractors (Express dashboard, v2 recipient accounts, embedded onboarding, platform owns pricing and loss liability, Radar on). Each payment carries `transfer_group` = `event_<event id>` so the event's contractor transfers can be tied to it. Connect payouts are not built yet.
+
+1. Stripe → Developers → API keys → **Create restricted key**, with **Checkout Sessions: Write** and nothing else. It is the only call the app makes.
+2. Stripe → Developers → Webhooks → **Add endpoint**:
    - URL: `https://uvjtcwpfksmgmnfvghwz.supabase.co/functions/v1/stripe-webhook`
-   - Events: `checkout.session.completed` and `checkout.session.async_payment_succeeded`
+   - API version: `2026-10-28.endive` (the version the code pins with `Stripe-Version`)
+   - Events: `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `charge.refunded`, `charge.dispute.created`, `charge.dispute.updated`, `charge.dispute.closed`, `charge.dispute.funds_withdrawn`, `charge.dispute.funds_reinstated`
    - Copy its signing secret.
 3. In Supabase → Edge Functions → Secrets, add:
-   - `STRIPE_SECRET_KEY`
+   - `STRIPE_SECRET_KEY` (the restricted key)
    - `STRIPE_WEBHOOK_SECRET`
    - optionally `APP_ORIGINS` (comma-separated site origins Checkout may return to; defaults to the Vercel site and localhost).
-4. In the console: **Settings → Client payments → Let clients pay invoices by card**.
+4. In Stripe settings, turn on Link and dynamic payment methods, and check Radar is on.
+5. In the console: **Settings → Client payments → Let clients pay invoices by card**.
 
 Until both the secret and the switch are on, the portal tells clients to pay by check or transfer, and `client-checkout` refuses with a clear message.
 
-The webhook verifies Stripe's signature and accepts it for five minutes. It is idempotent on the Checkout Session id.
+**What the webhook does** (`supabase/functions/stripe-webhook`, migration `20261118000900`):
+- Verifies Stripe's signature and accepts it for five minutes.
+- Payments are idempotent on the Checkout Session id.
+- Refunds and disputes are set from Stripe's own totals, never added to. Only what is left of a payment after refunds and any amount a dispute holds counts toward the invoice; a won dispute counts again. A dispute event older than the last one applied is ignored.
+- A failed bank payment is logged once and the owners are notified; nothing was recorded as paid.
+- Invoices show "$X refunded", "Refunded in full" or the dispute state next to the payment, in the console and the portal.
 
 ## Not built yet
 

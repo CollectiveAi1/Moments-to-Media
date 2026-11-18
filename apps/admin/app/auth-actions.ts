@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { DEMO_ACCOUNTS, DEMO_REFUSAL, demoEnabled, isDemoEmail } from '@/lib/demo';
 import { isPortal, PORTALS, passwordProblem, type Portal } from '@/lib/portals';
 import { sendPasswordReset, signUpWithPassword } from '@/lib/supabase/mailer';
+import { clearLoginFailures, loginWaitSeconds, recordLoginFailure } from '@/lib/supabase/service';
 import { createClient } from '@/lib/supabase/server';
 
 export interface AuthState {
@@ -50,8 +51,8 @@ export async function signIn(_p: AuthState, form: FormData): Promise<AuthState> 
 
   const supabase = await createClient();
   const ip = await clientIp();
-  const { data: wait } = await supabase.rpc('login_wait_seconds', { p_email: email, p_ip: ip });
-  if (typeof wait === 'number' && wait > 0) {
+  const wait = await loginWaitSeconds(email, ip);
+  if (wait > 0) {
     return { status: 'error', message: `Too many wrong passwords. Try again in ${minutes(wait)} minute${minutes(wait) === 1 ? '' : 's'}, or reset your password.`, email };
   }
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -60,13 +61,13 @@ export async function signIn(_p: AuthState, form: FormData): Promise<AuthState> 
       return { status: 'error', message: 'Confirm your email first: open the link we sent when you signed up.', email };
     }
     if (error?.status === 429) return { status: 'error', message: 'Too many attempts from this network. Wait a few minutes and try again.', email };
-    const { data: after } = await supabase.rpc('record_login_failure', { p_email: email, p_ip: ip });
-    if (typeof after === 'number' && after > 0) {
+    const after = await recordLoginFailure(email, ip);
+    if (after > 0) {
       return { status: 'error', message: `Wrong email or password. Sign-in is paused for ${minutes(after)} minutes after too many tries; you can reset your password now.`, email };
     }
     return { status: 'error', message: 'Wrong email or password.', email };
   }
-  await supabase.rpc('clear_login_failures', { p_email: email, p_ip: ip });
+  await clearLoginFailures(email, ip);
 
   // Invitations and client records made since their last visit.
   await supabase.rpc('claim_invitations');
