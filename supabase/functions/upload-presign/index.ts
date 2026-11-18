@@ -13,6 +13,7 @@
  */
 
 import { asCaller, type ResumePlan } from "../_shared/db.ts";
+import { withCors } from "../_shared/cors.ts";
 import { readEnv } from "../_shared/env.ts";
 import {
   HttpError,
@@ -34,7 +35,7 @@ import { DEFAULT_PRESIGN_SECONDS, R2 } from "../_shared/r2.ts";
 const DEFAULT_COUNT = 100;
 const MAX_COUNT = 1000;
 
-Deno.serve(async (req) => {
+Deno.serve(withCors(async (req) => {
   try {
     requirePost(req);
     const authorization = requireAuthorization(req);
@@ -85,4 +86,4 @@ Deno.serve(async (req) => {
   } catch (err) {
     return toResponse(err);
   }
-});
+}));

@@ -14,6 +14,7 @@
  */
 
 import { asCaller, asService, type UploadPlan } from "../_shared/db.ts";
+import { withCors } from "../_shared/cors.ts";
 import { readEnv } from "../_shared/env.ts";
 import {
   json,
@@ -32,7 +33,7 @@ import { CHECKSUM_ALGORITHM, DEFAULT_PRESIGN_SECONDS, R2 } from "../_shared/r2.t
 const DEFAULT_PRESIGN_COUNT = 100;
 const MAX_PRESIGN_COUNT = 1000;
 
-Deno.serve(async (req) => {
+Deno.serve(withCors(async (req) => {
   try {
     requirePost(req);
     const authorization = requireAuthorization(req);
@@ -139,4 +140,4 @@ Deno.serve(async (req) => {
   } catch (err) {
     return toResponse(err);
   }
-});
+}));
