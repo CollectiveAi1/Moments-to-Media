@@ -6,7 +6,7 @@ import { ActionForm } from '@/components/ActionForm';
 import { BackLink, Card, H1, H2, ListRow, Muted, Notice, StatusText, Tag } from '@/components/ui';
 import { allocate, amountDueNow, todayIn } from '@/lib/billing/schedule';
 import { requireClient } from '@/lib/context';
-import { INVOICE_STATUS, PAYMENT_METHOD, dateTime, money } from '@/lib/format';
+import { INVOICE_STATUS, PAYMENT_METHOD, dateTime, money, paymentAfterNote } from '@/lib/format';
 import { color } from '@/lib/ui';
 import { payInvoice } from '../../actions';
 
@@ -25,7 +25,7 @@ export default async function PortalInvoice({ params, searchParams }: { params: 
     db.from('invoices').select('id, number, title, notes, status, subtotal_cents, discount_cents, tax_rate_bp, tax_cents, total_cents, paid_cents, sent_at, event_id, proposal_id').eq('id', invoiceId).neq('status', 'draft').maybeSingle(),
     db.from('invoice_lines').select('id, description, quantity, unit_cents').eq('invoice_id', invoiceId).order('sort_order'),
     db.from('invoice_installments').select('id, label, amount_cents, due_on').eq('invoice_id', invoiceId).order('due_on'),
-    db.from('client_payments').select('id, amount_cents, method, reference, received_at, status').eq('invoice_id', invoiceId).order('received_at'),
+    db.from('client_payments').select('id, amount_cents, method, reference, received_at, status, refunded_cents, disputed_cents, dispute_status').eq('invoice_id', invoiceId).order('received_at'),
     db.rpc('client_payments_enabled', { p_org: viewer.org.id }),
   ]);
   if (!inv) notFound();
@@ -114,7 +114,7 @@ export default async function PortalInvoice({ params, searchParams }: { params: 
             <H2 size={20}>Receipts</H2>
             {(payments ?? []).length === 0 ? <Muted>No payments yet.</Muted> : null}
             {(payments ?? []).map((p) => (
-              <ListRow key={String(p.id)} label={`${dateTime(String(p.received_at), 'America/New_York')} · ${PAYMENT_METHOD[String(p.method)] ?? String(p.method)}`} value={<strong>{money(Number(p.amount_cents))}</strong>} />
+              <ListRow key={String(p.id)} label={`${dateTime(String(p.received_at), 'America/New_York')} · ${PAYMENT_METHOD[String(p.method)] ?? String(p.method)}${paymentAfterNote(p) ? ` · ${paymentAfterNote(p)}` : ''}`} value={<strong>{money(Number(p.amount_cents))}</strong>} />
             ))}
           </Card>
         </div>

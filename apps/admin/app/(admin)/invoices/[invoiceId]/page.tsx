@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { BackLink, Card, Field, H2, ListRow, Muted, Notice, Row, StatusText, Tag, inputStyle, textareaStyle } from '@/components/ui';
 import { allocate, todayIn } from '@/lib/billing/schedule';
 import { requireAdmin } from '@/lib/context';
-import { INVOICE_STATUS, PAYMENT_METHOD, dateTime, money } from '@/lib/format';
+import { INVOICE_STATUS, PAYMENT_METHOD, dateTime, money, paymentAfterNote } from '@/lib/format';
 import { color } from '@/lib/ui';
 import {
   addInstallment, addInvoiceLine, deleteInvoice, recordPayment, removeInstallment, removeInvoiceLine, sendInvoice, splitInvoice, updateInvoice, updateInvoiceNotes, voidInvoice,
@@ -25,7 +25,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ invoic
     viewer.supabase.from('invoices').select('*, clients!invoices_client_id_fkey(id, name), events(id, title)').eq('id', invoiceId).maybeSingle(),
     viewer.supabase.from('invoice_lines').select('id, description, quantity, unit_cents').eq('invoice_id', invoiceId).order('sort_order').order('created_at'),
     viewer.supabase.from('invoice_installments').select('id, label, amount_cents, due_on').eq('invoice_id', invoiceId).order('due_on'),
-    viewer.supabase.from('client_payments').select('id, amount_cents, method, status, reference, received_at').eq('invoice_id', invoiceId).order('received_at'),
+    viewer.supabase.from('client_payments').select('id, amount_cents, method, status, reference, received_at, refunded_cents, disputed_cents, dispute_status').eq('invoice_id', invoiceId).order('received_at'),
     viewer.supabase.from('packages').select('id, name, price_cents, is_addon').eq('org_id', viewer.org.id).eq('active', true).order('is_addon').order('sort_order'),
   ]);
   if (!inv) notFound();
@@ -181,7 +181,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ invoic
               {(payments ?? []).map((pm) => (
                 <ListRow
                   key={String(pm.id)}
-                  label={`${PAYMENT_METHOD[String(pm.method)] ?? String(pm.method)}${pm.reference ? ` · ${String(pm.reference)}` : ''} · ${dateTime(String(pm.received_at), 'America/New_York')}`}
+                  label={`${PAYMENT_METHOD[String(pm.method)] ?? String(pm.method)}${pm.reference ? ` · ${String(pm.reference)}` : ''} · ${dateTime(String(pm.received_at), 'America/New_York')}${paymentAfterNote(pm) ? ` · ${paymentAfterNote(pm)}` : ''}`}
                   value={<strong>{money(Number(pm.amount_cents))}</strong>}
                 />
               ))}

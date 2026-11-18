@@ -46,12 +46,12 @@ Deno.serve(async (req) => {
     const env = readEnv();
     const headers = { apikey: env.SUPABASE_ANON_KEY, Authorization: authorization, accept: "application/json" };
     const res = await fetch(
-      `${env.SUPABASE_URL}/rest/v1/invoices?id=eq.${invoiceId}&select=id,org_id,number,title,status,total_cents,paid_cents,invoice_installments!invoice_installments_invoice_id_fkey(label,amount_cents,due_on)`,
+      `${env.SUPABASE_URL}/rest/v1/invoices?id=eq.${invoiceId}&select=id,org_id,event_id,number,title,status,total_cents,paid_cents,invoice_installments!invoice_installments_invoice_id_fkey(label,amount_cents,due_on)`,
       { headers },
     );
     if (!res.ok) throw new HttpError(`could not read the invoice (${res.status})`, 502);
     const rows = (await res.json()) as Array<{
-      id: string; org_id: string; number: number; title: string; status: string; total_cents: number; paid_cents: number;
+      id: string; org_id: string; event_id: string | null; number: number; title: string; status: string; total_cents: number; paid_cents: number;
       invoice_installments: Installment[];
     }>;
     const inv = rows[0];
@@ -90,7 +90,12 @@ Deno.serve(async (req) => {
           price_data: { currency: "usd", unit_amount: amount, product_data: { name: `Invoice ${inv.number} · ${inv.title} · ${due.label}` } },
         }],
         metadata: { invoice_id: inv.id, org_id: inv.org_id, amount_cents: amount },
-        payment_intent_data: { metadata: { invoice_id: inv.id, org_id: inv.org_id } },
+        payment_intent_data: {
+          metadata: { invoice_id: inv.id, org_id: inv.org_id },
+          // Ties the client's payment to the event's contractor transfers later
+          // (separate charges and transfers), and shows them together in Stripe.
+          transfer_group: inv.event_id ? `event_${inv.event_id}` : `invoice_${inv.id}`,
+        },
       },
       // One open checkout per invoice, amount and minute: a double click does not make two.
       `checkout:${inv.id}:${amount}:${inv.paid_cents}:${Math.floor(Date.now() / 60_000)}`,

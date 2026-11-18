@@ -31,10 +31,18 @@ export function formEncode(value: Record<string, unknown>, prefix = ""): string[
   return out;
 }
 
+/**
+ * Every request names its API version, so a Stripe upgrade to the account's
+ * default never changes what we send or get back. The webhook endpoint in the
+ * Stripe dashboard is pinned to the same version (docs/client-portal.md).
+ */
+export const STRIPE_API_VERSION = "2026-10-28.endive";
+
 export async function stripePost<T>(secretKey: string, path: string, body: Record<string, unknown>, idempotencyKey?: string): Promise<T> {
   const headers: Record<string, string> = {
     Authorization: `Bearer ${secretKey}`,
     "content-type": "application/x-www-form-urlencoded",
+    "Stripe-Version": STRIPE_API_VERSION,
   };
   if (idempotencyKey) headers["Idempotency-Key"] = idempotencyKey;
   const res = await fetch(`https://api.stripe.com/v1/${path}`, { method: "POST", headers, body: formEncode(body).join("&") });
