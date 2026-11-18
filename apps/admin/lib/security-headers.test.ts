@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { SECURITY_HEADERS } from './security-headers.ts';
+import { SECURITY_HEADERS } from '../next.config.ts';
 
 const header = (name: string) => SECURITY_HEADERS.find((h) => h.key.toLowerCase() === name.toLowerCase())?.value;
 

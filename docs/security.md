@@ -32,7 +32,7 @@ A read-only audit of the live app found 1 High, 2 Medium and 6 Low issues; none 
 | M1 | Self-registered clients read crew announcements; new organizations took sign-ups by default | `20261119000200`: announcements are for admins and contractors only; compliance documents for staff and crew; `contractor_signup` and `client_signup` default to off. |
 | M2 | The sign-in throttle's functions were callable by anyone (targeted lockouts) and resettable by any user | `20261119000300`: service role only, called from `apps/admin/lib/supabase/service.ts`. Needs `SUPABASE_SERVICE_ROLE_KEY` in Vercel. |
 | L1 | Proposal tokens were sent to Vercel Analytics | `components/SiteAnalytics.tsx` strips `/p/<token>`, query strings and fragments. |
-| L2 | No security headers beyond HSTS | `lib/security-headers.ts`: frame-ancestors none, X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy; full CSP in report-only mode first. |
+| L2 | No security headers beyond HSTS | `next.config.ts` (`SECURITY_HEADERS`): frame-ancestors none, X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy; full CSP in report-only mode first. |
 | L3 | Emailed links took their address from request headers | `siteOrigin()` returns `NEXT_PUBLIC_SITE_URL`. |
 | L4 | Applicants could show admins an edited email | `pending_contractors` shows the verified `auth.users` email. |
 | L5 | Six references did not check the organization | Composite foreign keys with `org_id` (`20261119000400`). |
