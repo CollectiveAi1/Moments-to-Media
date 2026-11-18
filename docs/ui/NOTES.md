@@ -76,13 +76,13 @@ phone today. Someone who is both owner and contractor switches with the
 
 ### What does not work yet, and why
 
-- **Uploading from a browser needs one bucket setting.** The R2 bucket has no
-  CORS rule, so browsers are refused before the first byte. The upload
-  credentials cannot change bucket settings (by design: they are object-only),
-  so it is a dashboard step: R2 → `moments-to-media-footage` → Settings → CORS
-  policy, allowing PUT and GET from the app's origins, the
-  `x-amz-checksum-crc64nvme` and `content-type` headers, and exposing `ETag`.
-  The uploader says exactly this if it happens.
+- **Uploading from a browser** works as of Nov 18, 2026, and needed two
+  CORS settings. The R2 bucket `moments-to-media-footage` has a rule allowing
+  `PUT` from `https://moments-to-media-admin.vercel.app` with the
+  `x-amz-checksum-crc64nvme` and `content-type` headers, exposing `ETag`.
+  The upload functions answer preflight for the app's origins
+  (`supabase/functions/_shared/cors.ts`). A new domain for the app has to be
+  added to both.
 - **Stripe Connect is not connected.** Payouts move through every state; the
   owner records Sent and Paid by hand. "Open Stripe Express" is disabled.
 - **Notifications are not fanned out.** Running late and off-site check-ins

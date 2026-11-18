@@ -10,6 +10,7 @@
  */
 
 import { asCaller, asService, type ResumePlan, type UploadRow } from "../_shared/db.ts";
+import { withCors } from "../_shared/cors.ts";
 import { readEnv } from "../_shared/env.ts";
 import {
   HttpError,
@@ -22,7 +23,7 @@ import {
 } from "../_shared/http.ts";
 import { R2, reconcileChecksum } from "../_shared/r2.ts";
 
-Deno.serve(async (req) => {
+Deno.serve(withCors(async (req) => {
   try {
     requirePost(req);
     const authorization = requireAuthorization(req);
@@ -101,4 +102,4 @@ Deno.serve(async (req) => {
   } catch (err) {
     return toResponse(err);
   }
-});
+}));
